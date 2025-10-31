@@ -19,6 +19,13 @@
   "bin": {
     "musicify": "dist/cli.js"
   },
+  "files": [
+    "dist/",
+    "scripts/",
+    "templates/",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x dist/cli.js",
