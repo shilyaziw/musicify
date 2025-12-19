@@ -58,13 +58,17 @@ export function isInteractive(): boolean {
  * Check if running in Claude Code environment
  */
 export function isClaudeCode(): boolean {
-  // 1. 环境变量检测
+  // 1. 标准 Claude Code 环境变量检测
   if (process.env.CLAUDE_CODE === 'true') return true;
 
-  // 2. 命令行参数检测
+  // 2. 实际 Claude Code 环境检测
+  if (process.env.CLAUDECODE === '1') return true;
+  if (process.env.CLAUDE_CODE_ENTRYPOINT) return true;
+
+  // 3. 命令行参数检测
   if (process.argv.some(arg => arg.includes('claude-code'))) return true;
 
-  // 3. 全局对象检测
+  // 4. 全局对象检测
   if (typeof (global as any).claudeCode !== 'undefined') return true;
 
   return false;
