@@ -536,6 +536,23 @@ program
     await executeCommandWithTemplate('melody-hint', 'melody-hint', args);
   });
 
+// /melody-mimic - 旋律风格学习助手
+program
+  .command('melody-mimic')
+  .description('旋律风格学习助手 - 基于参考歌曲创作原创旋律')
+  .option('--project <name>', '项目名称')
+  .action(async (options) => {
+    const args = options.project ? ['--project', options.project] : [];
+
+    // 双轨执行逻辑
+    if (isClaudeCode() && await skillExists('melody-mimic')) {
+      await executeSkill('melody-mimic', args);
+    } else {
+      displayError('melody-mimic 命令仅在 Claude Code 环境下支持 Skill 增强功能');
+      displayInfo('当前环境不支持此功能，请在 Claude Code 中使用');
+    }
+  });
+
 // /export - 导出
 program
   .command('export')
@@ -580,6 +597,7 @@ program
     console.log('  musicify rhyme                  押韵检查');
     console.log('  musicify polish                 润色优化');
     console.log('  musicify melody-hint            旋律提示');
+    console.log('  musicify melody-mimic           旋律风格学习助手 (Claude Code)');
     console.log('');
     console.log(chalk.cyan('📤 导出:'));
     console.log('  musicify export --format txt    导出歌词');

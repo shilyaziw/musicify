@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2025-12-19
+
+### 🛠️ Bug Fix
+
+#### Fixed
+- **CLI 命令注册缺失修复**: 修复 `melody-mimic` 命令在 CLI 补全中不显示的问题
+  - 添加了 `melody-mimic` 命令的正确注册和描述
+  - 更新了帮助信息，包含新的旋律风格学习助手功能
+  - 现在 `/melody-mimic` 命令可以在命令补全中正常显示
+
+#### Technical
+- 完善了双轨执行逻辑，确保 melody-mimic 仅在 Claude Code 环境下可用
+- 优化了错误提示，为非 Claude Code 环境提供清晰的说明
+
 ## [0.6.0] - 2025-12-19
 
 ### 🎵 Major Feature: 旋律风格学习助手系统
