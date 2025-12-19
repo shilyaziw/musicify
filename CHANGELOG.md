@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.2] - 2025-12-19
+
+### 🎵 Feature: Claude Code 斜杠命令集成
+
+#### Added
+- **💫 完整的斜杠命令架构实现**: `/melody-mimic` 现已集成到 templates/commands/ 目录
+  - 新增 `templates/commands/melody-mimic.md` - 斜杠命令模板文件
+  - 新增 `scripts/bash/melody-mimic.sh` - Bash 脚本支持
+  - 新增 `scripts/powershell/melody-mimic.ps1` - PowerShell 脚本支持
+  - 安装 Musicify 时自动集成到用户的 Claude Code 项目
+
+- **🔍 增强的环境检测**: 改进 Claude Code 环境识别精度
+  - 新增对 `CLAUDECODE=1` 环境变量的检测
+  - 新增对 `CLAUDE_CODE_ENTRYPOINT` 环境变量的检测
+  - 提升在实际 Claude Code 环境中的识别准确性
+
+#### Technical
+- **正确的使用流程**: 用户先输入 `/melody-mimic` → 根据提示准备参考文件 → 再次运行开始分析
+- **自动文件检测**: 智能扫描 `workspace/references/` 目录，自动识别可用的参考歌曲
+- **跨平台脚本**: 支持 macOS/Linux (Bash) 和 Windows (PowerShell) 环境
+- **结构化输出**: JSON 格式的状态信息，便于 Claude 解析和处理
+
+#### Files Changed
+- `templates/commands/melody-mimic.md` (new)
+- `scripts/bash/melody-mimic.sh` (new)
+- `scripts/powershell/melody-mimic.ps1` (new)
+- `src/utils/interactive.ts` (enhanced)
+
 ## [0.6.1] - 2025-12-19
 
 ### 🛠️ Bug Fix
