@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.6] - 2025-12-19
+
+### 🐛 Bug Fix: Windows PowerShell 编码问题
+
+#### Fixed
+- **PowerShell 脚本编码修复**: 修复 Windows 上中文字符解析错误
+  - 为所有 PowerShell 脚本添加 UTF-8 BOM (Byte Order Mark)
+  - 解决 Windows PowerShell 默认编码导致的中文乱码问题
+  - 修复 Issue #1: PowerShell 脚本解析错误
+
+#### Technical
+- UTF-8 BOM (`EF BB BF`) 确保 Windows PowerShell 正确识别文件编码
+- 影响文件: `scripts/powershell/*.ps1` (13个文件)
+
+#### Files Changed
+- `scripts/powershell/*.ps1` - 添加 UTF-8 BOM
+- `package.json` - 版本更新至 0.7.6
+
+---
+
 ## [0.7.5] - 2025-12-19
 
 ### 📋 Feature: 创作成果报告（可选）

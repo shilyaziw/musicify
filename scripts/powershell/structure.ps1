@@ -1,4 +1,4 @@
-# 歌曲结构设计
+﻿# 歌曲结构设计
 
 . "$PSScriptRoot\common.ps1"
 

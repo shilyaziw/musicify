@@ -1,4 +1,4 @@
-# 主题构思
+﻿# 主题构思
 
 . "$PSScriptRoot\common.ps1"
 

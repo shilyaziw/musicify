@@ -1,4 +1,4 @@
-# 押韵检查
+﻿# 押韵检查
 
 . "$PSScriptRoot\common.ps1"
 

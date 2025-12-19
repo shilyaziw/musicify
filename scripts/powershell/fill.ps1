@@ -1,4 +1,4 @@
-# 填充混合模式框架
+﻿# 填充混合模式框架
 
 . "$PSScriptRoot\common.ps1"
 

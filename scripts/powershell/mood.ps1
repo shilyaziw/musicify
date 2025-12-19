@@ -1,4 +1,4 @@
-# 情绪氛围定位
+﻿# 情绪氛围定位
 
 . "$PSScriptRoot\common.ps1"
 

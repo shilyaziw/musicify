@@ -1,4 +1,4 @@
-# 旋律提示
+﻿# 旋律提示
 
 . "$PSScriptRoot\common.ps1"
 

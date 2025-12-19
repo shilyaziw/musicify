@@ -1,8 +1,8 @@
 # Musicify - AI 驱动的歌词创作与旋律学习工具
 
-> **版本**: v0.7.5
-> **状态**: ✅ 核心功能 + 作曲辅助 + 旋律风格学习
-> **定位**: 从歌词到音乐的完整创作辅助工具，支持 Claude Code Skills 增强体验
+[![npm version](https://badge.fury.io/js/ai-musicify.svg)](https://www.npmjs.com/package/ai-musicify)
+
+> 从歌词到音乐的完整创作辅助工具，支持 Claude Code Skills 增强体验
 
 **核心价值**: 帮助创作者从零完成歌曲创作，支持全类型歌曲、三种创作模式、旋律风格学习，并与 Suno/Tunee 等 AI 音乐平台无缝对接
 
@@ -397,8 +397,3 @@ MIT License
 
 本项目架构参考了 [Scriptify](https://github.com/wordflowlab/scriptify) 项目。
 
----
-
-**版本**: v0.7.5
-**发布日期**: 2025-12-19
-**状态**: ✅ 核心功能 + 作曲辅助 + 旋律风格学习完成

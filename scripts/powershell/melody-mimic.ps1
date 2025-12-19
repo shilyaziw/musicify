@@ -1,4 +1,4 @@
-# 旋律风格学习助手 - MIDI 分析和旋律创作
+﻿# 旋律风格学习助手 - MIDI 分析和旋律创作
 
 . "$PSScriptRoot\common.ps1"
 

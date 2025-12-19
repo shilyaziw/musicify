@@ -1,4 +1,4 @@
-# 歌词润色
+﻿# 歌词润色
 
 . "$PSScriptRoot\common.ps1"
 

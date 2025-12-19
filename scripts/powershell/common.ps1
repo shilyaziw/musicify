@@ -1,4 +1,4 @@
-# Musicify 通用函数库 (PowerShell)
+﻿# Musicify 通用函数库 (PowerShell)
 
 # 查找 musicify 项目根目录
 function Get-CurrentProject {
