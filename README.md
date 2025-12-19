@@ -32,12 +32,13 @@
 
 ## 🎯 核心功能
 
-### 1. 🎼 旋律风格学习助手 (v0.6.0+) 🆕
+### 1. 🎼 旋律风格学习助手 (v0.6.0+)
 
 **基于参考歌曲的 MIDI 和歌词，学习旋律风格并创作原创旋律**
 
 ```bash
-/melody-mimic
+/melody-mimic        # 标准版 - 需要 MIDI 文件
+/melody-mimic-easy   # 简易版 - 支持 MP3 文件 (v0.8.0+) 🆕
 ```
 
 **功能特点**:
@@ -45,6 +46,7 @@
 - 📊 **深度特征提取** - 节奏型、音程、调式专业分析
 - 🤖 **AI 风格学习** - 生成风格相似的原创旋律
 - 📋 **双报告系统** - 旋律特征报告 + 歌词深度分析报告
+- 🎵 **MP3 支持** - 自动将 MP3 转换为 MIDI (v0.8.0+)
 
 **支持的调式/音阶** (v0.7.4+):
 - 西方调式: 大调、小调、多利亚、混合利底亚、弗里几亚、利底亚
@@ -159,12 +161,27 @@ npm run build
 # 1. 检查 Python 环境
 python3 --version
 
-# 2. 安装必需依赖
+# 2. 安装必需依赖（MIDI 分析）
 pip install mido music21 numpy
 
 # 3. 配置 music21（重要！）
 python3 -c "from music21 import configure; configure.run()"
+
+# 4. 【可选】安装 MP3 转 MIDI 依赖（仅 /melody-mimic-easy 需要）
+pip install demucs basic-pitch
 ```
+
+### MP3 转 MIDI 硬件要求 (v0.8.0+)
+
+使用 `/melody-mimic-easy` 处理 MP3 文件时的预计耗时:
+
+| 设备 | 处理 3 分钟歌曲 |
+|------|----------------|
+| Mac M1/M2 | ~3 分钟 |
+| Windows + NVIDIA GPU | ~2 分钟 |
+| Windows + 集成显卡 | ~10 分钟 |
+
+**备选方案**: 使用在线工具 [basicpitch.spotify.com](https://basicpitch.spotify.com) 转换
 
 ---
 
@@ -199,18 +216,21 @@ cd "我的第一首歌"
 /export       # 9. 导出到平台
 ```
 
-### 3. 旋律风格学习 (🆕)
+### 3. 旋律风格学习
 
 ```bash
 # 1. 准备参考文件
 workspace/references/{歌曲名}/
-├── {歌曲名}.mid     # MIDI 文件
+├── {歌曲名}.mid     # MIDI 文件（推荐）
+├── {歌曲名}.mp3     # 或 MP3 文件（v0.8.0+ 支持）
 └── {歌曲名}.txt     # 歌词文件
 
 # 2. 启动旋律学习
-/melody-mimic
+/melody-mimic        # 标准版（需要 MIDI）
+/melody-mimic-easy   # 简易版（支持 MP3）🆕
 
 # 3. Claude 将自动:
+#    - 检测文件类型（MP3 会自动转换为 MIDI）
 #    - 分析 MIDI 文件
 #    - 生成旋律特征报告
 #    - 生成歌词深度分析报告
@@ -248,10 +268,11 @@ workspace/references/{歌曲名}/
 - `/rhyme` - 押韵检查
 - `/polish` - 润色优化
 
-### 音乐辅助功能 (3个)
+### 音乐辅助功能 (4个)
 - `/compose` - 生成和弦进行、旋律提示和五线谱
 - `/melody-hint` - 旋律提示 (已集成到 /compose)
-- `/melody-mimic` - 🆕 旋律风格学习助手
+- `/melody-mimic` - 旋律风格学习助手（需要 MIDI）
+- `/melody-mimic-easy` - 🆕 旋律风格学习助手简易版（支持 MP3）
 
 ---
 
@@ -347,6 +368,13 @@ Musicify 提供 4 个专业 Skills:
 - 多风格支持
 - 创作成果报告
 
+**Phase 5.5: MP3 支持** (已完成 ✅ v0.8.0)
+- MP3 转 MIDI 自动转换
+- Demucs 人声分离集成
+- Basic Pitch 音频转 MIDI
+- 跨平台硬件检测
+- 在线工具备选方案
+
 **Phase 6: 增强功能** (规划中 📋)
 - 更智能的押韵建议
 - 方言支持 (粤语/四川话等)
@@ -365,6 +393,8 @@ Musicify 提供 4 个专业 Skills:
 
 | 版本 | 日期 | 主要更新 |
 |------|------|----------|
+| v0.8.0 | 2025-12-20 | 🆕 MP3 转 MIDI 支持（/melody-mimic-easy） |
+| v0.7.6 | 2025-12-19 | Windows PowerShell 编码修复 |
 | v0.7.5 | 2025-12-19 | 创作成果报告（可选） |
 | v0.7.4 | 2025-12-19 | 多风格支持（西方调式、蓝调等） |
 | v0.7.3 | 2025-12-19 | 双报告分析系统 |

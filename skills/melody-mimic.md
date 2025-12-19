@@ -1,13 +1,14 @@
 ---
 name: melody-mimic
-description: 旋律风格学习助手 - 多模式确认优化，专业 MIDI 分析与 AI 旋律生成
+description: 旋律风格学习助手 - 多模式确认优化，专业 MIDI 分析与 AI 旋律生成，支持 MP3 自动转换
 category: composition
-version: "2.1"
+version: "2.2"
 resources:
   - midi-parser-rules.json
   - python-deps.txt
+  - audio_to_midi.py
 allowed-tools:
-  - AskUserQuestion       # NEW: 模式选择界面
+  - AskUserQuestion       # 模式选择界面
   - Bash                  # 执行 Python 分析脚本
   - Read                  # 读取 MIDI 和歌词文件
   - Write                 # 写入分析结果和生成的旋律
@@ -19,6 +20,8 @@ allowed-tools:
 > **基于参考歌曲的 MIDI 和歌词，学习旋律风格并创作原创旋律**
 >
 > 通过分析参考乐谱的抽象特征，引导用户创作风格相似的原创作品
+>
+> **v2.2 新增**: 支持 MP3 文件自动转换为 MIDI，降低使用门槛
 
 ---
 
@@ -45,29 +48,49 @@ allowed-tools:
 # 1. 检查 Python 环境
 python3 --version
 
-# 2. 安装必需依赖
+# 2. 安装必需依赖（MIDI 分析）
 pip install mido music21 numpy
 
 # 3. 配置 music21（重要！）
 python3 -c "from music21 import configure; configure.run()"
+
+# 4. 【可选】安装 MP3 转 MIDI 依赖（仅当使用 MP3 文件时需要）
+pip install demucs basic-pitch
 ```
+
+### 支持的输入格式
+
+| 格式 | 说明 | 额外依赖 |
+|------|------|----------|
+| **MIDI + 歌词** | 标准流程，推荐 | 无 |
+| **MP3 + 歌词** | 自动转换为 MIDI | demucs, basic-pitch |
+
+**MP3 转换说明**:
+- 使用 Demucs 分离人声音轨
+- 使用 Basic Pitch 将人声转为 MIDI
+- 处理时间: Mac M1 约 3 分钟，Windows 集显约 10 分钟
+- 备选方案: 使用在线工具 [basicpitch.spotify.com](https://basicpitch.spotify.com)
 
 ### 工作流程
 
 #### 步骤 1: 准备参考文件
-将 MIDI 和歌词文件放在规定目录：
+将音频和歌词文件放在规定目录：
 ```
 workspace/references/{歌曲名}/
-├── {歌曲名}.mid     # MIDI 文件
-└── {歌曲名}.txt     # 歌词文件
+├── {歌曲名}.mid     # MIDI 文件（推荐）
+├── {歌曲名}.mp3     # 或 MP3 文件（会自动转换）
+└── {歌曲名}.txt     # 歌词文件（必需）
 ```
+
+**注意**: MP3 和 MIDI 二选一即可。如果同时存在，优先使用 MIDI。
 
 #### 步骤 2: 启动分析
 Claude 将自动：
-1. 🔍 **检测分析能力** - 自动检测可用的 Python 环境
-2. 🎵 **智能音轨识别** - 多维度评分匹配人声音轨
-3. 📊 **深度特征提取** - 节奏、音程、调式专业分析
-4. 🤖 **AI 风格学习** - 为原创旋律生成做准备
+1. 🔍 **检测文件类型** - 自动识别 MP3 或 MIDI 文件
+2. 🔄 **MP3 转换** (如需要) - 使用 Demucs + Basic Pitch 转换
+3. 🎵 **智能音轨识别** - 多维度评分匹配人声音轨
+4. 📊 **深度特征提取** - 节奏、音程、调式专业分析
+5. 🤖 **AI 风格学习** - 为原创旋律生成做准备
 
 #### 步骤 3: 生成双报告 📊 (CRITICAL)
 
@@ -150,18 +173,33 @@ Claude 将基于旋律复杂度智能推荐最适合的模式，用户可以选�
 workspace/
 └── references/
     └── {song-name}/
-        ├── {song-name}.mid      # MIDI 文件（必需）
+        ├── {song-name}.mid      # MIDI 文件（推荐）
+        ├── {song-name}.mp3      # 或 MP3 文件（会自动转换）
         └── {song-name}.txt      # 歌词文件（必需）
 ```
 
-**示例**:
+**示例 1 - 使用 MIDI**:
 ```
 workspace/
 └── references/
-    └── tan-gu-zhi/
-        ├── tan-gu-zhi.mid       # 《探故知》MIDI 文件
-        └── tan-gu-zhi.txt       # 《探故知》歌词文件
+    └── 探故知/
+        ├── 探故知.mid           # MIDI 文件
+        └── 探故知.txt           # 歌词文件
 ```
+
+**示例 2 - 使用 MP3** (v0.8.0+):
+```
+workspace/
+└── references/
+    └── 探故知/
+        ├── 探故知.mp3           # MP3 文件（会自动转换为 MIDI）
+        └── 探故知.txt           # 歌词文件
+```
+
+**注意**:
+- MP3 和 MIDI 二选一即可
+- 如果同时存在，优先使用 MIDI（跳过转换）
+- MP3 转换需要额外依赖: `pip install demucs basic-pitch`
 
 ### MIDI 文件要求
 

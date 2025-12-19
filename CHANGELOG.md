@@ -2,6 +2,68 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-12-20
+
+### 🎵 Major Feature: MP3 转 MIDI 支持
+
+#### Added
+- **`/melody-mimic-easy` 命令** - 支持 MP3 文件输入的旋律风格学习
+  - 普通用户只需提供 MP3 + 歌词，无需获取 MIDI 文件
+  - 自动检测文件类型（MP3/MIDI）
+  - 智能硬件检测（CUDA/MPS/CPU）
+  - 提供在线工具备选方案
+
+- **`audio_to_midi.py` 转换工具** - MP3 转 MIDI 核心脚本
+  - 使用 Demucs 分离人声音轨
+  - 使用 Basic Pitch 将人声转为 MIDI
+  - 支持 `--check` 参数检查依赖状态
+  - JSON 格式输出，便于集成
+
+- **跨平台脚本支持**
+  - `scripts/bash/melody-mimic-easy.sh` - macOS/Linux 支持
+  - `scripts/powershell/melody-mimic-easy.ps1` - Windows 支持
+
+- **硬件兼容性**
+  - Mac M1/M2: ~3 分钟处理一首歌
+  - Windows + NVIDIA GPU: ~2 分钟
+  - Windows + 集成显卡: ~10 分钟
+  - 自动检测并显示预计耗时
+
+#### Enhanced
+- **Skills 配置升级**: `melody-mimic.md` 版本 2.1 → 2.2
+  - 新增 MP3 输入支持说明
+  - 更新文件目录结构示例
+  - 添加 `audio_to_midi.py` 资源引用
+
+- **文档更新**
+  - README.md 添加 MP3 支持说明
+  - 添加硬件要求表格
+  - 更新命令列表
+
+#### Technical
+- **新增可选依赖**: `demucs`, `basic-pitch`
+  - 仅在使用 MP3 转换功能时需要
+  - 核心 MIDI 分析功能无需这些依赖
+
+- **转换流程**:
+  ```
+  MP3 → Demucs (人声分离) → Basic Pitch (音频转MIDI) → MIDI 分析
+  ```
+
+#### Files Changed
+- `skills/scripts/audio_to_midi.py` (new)
+- `scripts/bash/melody-mimic-easy.sh` (new)
+- `scripts/powershell/melody-mimic-easy.ps1` (new)
+- `templates/commands/melody-mimic-easy.md` (new)
+- `skills/melody-mimic.md` - 版本更新至 2.2
+- `README.md` - 添加 MP3 支持文档
+- `package.json` - 版本更新至 0.8.0
+
+#### Migration Guide
+无需迁移，完全向后兼容。现有 `/melody-mimic` 命令保持不变，新增 `/melody-mimic-easy` 命令支持 MP3。
+
+---
+
 ## [0.7.6] - 2025-12-19
 
 ### 🐛 Bug Fix: Windows PowerShell 编码问题
