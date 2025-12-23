@@ -1,0 +1,173 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Musicify.Core.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="Musicify.Desktop.Views.WelcomeWindow"
+        x:DataType="vm:WelcomeViewModel"
+        Title="Musicify - AI 歌词创作助手"
+        Width="1000" Height="700"
+        MinWidth="800" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F7FA"
+        Icon="/Assets/app-icon.png">
+
+    <Design.DataContext>
+        <vm:WelcomeViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- 顶部栏 -->
+        <Border Grid.Row="0" Background="#FFFFFF" BoxShadow="0 2 8 0 #10000000" Padding="30,20">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Logo -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15">
+                    <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"
+                          Fill="#6366F1" Width="32" Height="32" Stretch="Uniform" />
+                    <TextBlock Text="Musicify" FontSize="28" FontWeight="Bold" VerticalAlignment="Center" Foreground="#1F2937" />
+                </StackPanel>
+
+                <!-- 版本信息 -->
+                <TextBlock Grid.Column="2" Text="v1.0.0 Desktop"
+                           FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- 主内容区 -->
+        <Grid Grid.Row="1" Margin="0,40,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="500" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左侧: 欢迎信息和操作 -->
+            <StackPanel Grid.Column="0" Margin="60,0,30,0" VerticalAlignment="Center">
+                <!-- 欢迎文案 -->
+                <TextBlock Text="🎵 开始你的创作之旅" FontSize="42" FontWeight="Bold" Foreground="#1F2937" Margin="0,0,0,20" />
+                <TextBlock FontSize="18" Foreground="#6B7280" LineHeight="32" TextWrapping="Wrap" Margin="0,0,0,40">
+                    <Run Text="Musicify 是你的 AI 歌词创作伙伴" />
+                    <LineBreak />
+                    <Run Text="支持教练模式、快速创作和混合模式" />
+                    <LineBreak />
+                    <Run Text="让每一首歌都有灵魂" />
+                </TextBlock>
+
+                <!-- 操作按钮 -->
+                <StackPanel Spacing="15">
+                    <!-- 新建项目按钮 -->
+                    <Button Command="{Binding CreateNewProjectCommand}"
+                            Classes="primary large"
+                            HorizontalAlignment="Stretch"
+                            Height="60">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Path Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                                  Fill="White" Width="24" Height="24" Stretch="Uniform" />
+                            <TextBlock Text="创建新项目" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 浏览项目按钮 -->
+                    <Button Command="{Binding BrowseProjectCommand}"
+                            Classes="secondary large"
+                            HorizontalAlignment="Stretch"
+                            Height="60">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Path Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"
+                                  Fill="#6366F1" Width="24" Height="24" Stretch="Uniform" />
+                            <TextBlock Text="打开现有项目" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- 特性列表 -->
+                <StackPanel Margin="0,50,0,0" Spacing="20">
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <Ellipse Width="10" Height="10" Fill="#10B981" VerticalAlignment="Center" />
+                        <TextBlock Text="智能 AI 对话式创作" FontSize="16" Foreground="#4B5563" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <Ellipse Width="10" Height="10" Fill="#10B981" VerticalAlignment="Center" />
+                        <TextBlock Text="MIDI 旋律分析和匹配" FontSize="16" Foreground="#4B5563" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="15">
+                        <Ellipse Width="10" Height="10" Fill="#10B981" VerticalAlignment="Center" />
+                        <TextBlock Text="多平台歌词格式导出" FontSize="16" Foreground="#4B5563" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- 右侧: 最近项目 -->
+            <Border Grid.Column="1" Background="White" CornerRadius="16" BoxShadow="0 4 16 0 #15000000" Margin="0,0,60,0">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="30">
+                    <!-- 标题 -->
+                    <TextBlock Grid.Row="0" Text="最近项目" FontSize="20" FontWeight="Bold" Foreground="#1F2937" Margin="0,0,0,20" />
+
+                    <!-- 项目列表 -->
+                    <ScrollViewer Grid.Row="1">
+                        <Grid>
+                            <!-- 加载状态 -->
+                            <StackPanel IsVisible="{Binding IsLoading}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
+                                <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                                      Fill="#D1D5DB" Width="48" Height="48" Stretch="Uniform" />
+                                <TextBlock Text="正在加载..." FontSize="14" Foreground="#9CA3AF" />
+                            </StackPanel>
+
+                            <!-- 空状态 -->
+                            <StackPanel IsVisible="{Binding !HasRecentProjects}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+                                <Path Data="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"
+                                      Fill="#D1D5DB" Width="64" Height="64" Stretch="Uniform" />
+                                <TextBlock Text="暂无最近项目" FontSize="16" Foreground="#9CA3AF" TextAlignment="Center" />
+                                <TextBlock Text="点击「创建新项目」开始吧!" FontSize="14" Foreground="#D1D5DB" TextAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- 项目列表 -->
+                            <ItemsControl Name="ProjectList" ItemsSource="{Binding RecentProjects}" IsVisible="{Binding HasRecentProjects}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Click="OnProjectItemClick"
+                                                Tag="{Binding}"
+                                                Classes="project-item"
+                                                Margin="0,0,0,12">
+                                            <Grid ColumnDefinitions="Auto,*,Auto" Margin="12">
+                                                <!-- 图标 -->
+                                                <Border Grid.Column="0" Width="40" Height="40" Background="#EEF2FF" CornerRadius="8" Margin="0,0,15,0">
+                                                    <Path Data="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"
+                                                          Fill="#6366F1" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <!-- 项目信息 -->
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                                    <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold" Foreground="#1F2937" />
+                                                    <TextBlock Text="{Binding ProjectPath}" FontSize="12" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding UpdatedAt, StringFormat='最后修改: {0:yyyy-MM-dd HH:mm}'}"
+                                                               FontSize="11" Foreground="#D1D5DB" />
+                                                </StackPanel>
+
+                                                <!-- 箭头 -->
+                                                <Path Grid.Column="2" Data="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                                                      Fill="#D1D5DB" Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </ScrollViewer>
+
+                    <!-- 错误提示 -->
+                    <Border Grid.Row="2" IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Background="#FEF2F2" BorderBrush="#FCA5A5" BorderThickness="1" CornerRadius="8" Padding="15" Margin="0,20,0,0">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Text="{Binding ErrorMessage}" FontSize="14" Foreground="#DC2626" TextWrapping="Wrap" />
+                            <Button Grid.Column="1" Command="{Binding ClearErrorCommand}" Classes="icon" VerticalAlignment="Top">
+                                <Path Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                                      Fill="#DC2626" Width="16" Height="16" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

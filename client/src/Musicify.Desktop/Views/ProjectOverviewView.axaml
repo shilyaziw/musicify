@@ -1,0 +1,182 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:converters="using:Musicify.Desktop.Views"
+             x:Class="Musicify.Desktop.Views.ProjectOverviewView"
+             x:DataType="vm:MainWindowViewModel">
+    
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="24">
+            <!-- 欢迎标题 -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="项目概览" 
+                          FontSize="32" 
+                          FontWeight="Bold"
+                          Foreground="#1F2937" />
+                <TextBlock Text="查看项目基本信息和状态" 
+                          FontSize="16"
+                          Foreground="#6B7280" />
+            </StackPanel>
+
+            <!-- 项目信息卡片 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="项目详情" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" 
+                                   Text="项目名称:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                   Text="{Binding ProjectSummary.ProjectName}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" 
+                                   Text="项目状态:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" 
+                                   Text="{Binding ProjectSummary.Status}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" 
+                                   Text="歌曲类型:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" 
+                                   Text="{Binding ProjectSummary.SongType}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" 
+                                   Text="创建时间:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" 
+                                   Text="{Binding ProjectSummary.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="4" Grid.Column="0" 
+                                   Text="更新时间:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" 
+                                   Text="{Binding ProjectSummary.UpdatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                   Foreground="#1F2937" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 文件状态卡片 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="文件状态" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <StackPanel Spacing="12">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" 
+                                      Text="📝 歌词文件:" 
+                                      FontWeight="SemiBold"
+                                      Foreground="#4B5563"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" 
+                                      Text="{Binding ProjectSummary.HasLyrics, Converter={x:Static converters:HasLyricsToStatusConverter.Instance}}"
+                                      Foreground="#1F2937"
+                                      VerticalAlignment="Center"
+                                      Margin="10,0,0,0" />
+                            <TextBlock Grid.Column="2" 
+                                      Text="{Binding ProjectSummary.HasLyrics, Converter={x:Static converters:BoolToIconConverter.Instance}}"
+                                      FontSize="16"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+                        
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                            <TextBlock Grid.Column="0" 
+                                      Text="🎵 MIDI 文件:" 
+                                      FontWeight="SemiBold"
+                                      Foreground="#4B5563"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" 
+                                      Text="{Binding ProjectSummary.HasMidiFile, Converter={x:Static converters:HasMidiToStatusConverter.Instance}}"
+                                      Foreground="#1F2937"
+                                      VerticalAlignment="Center"
+                                      Margin="10,0,0,0" />
+                            <TextBlock Grid.Column="2" 
+                                      Text="{Binding ProjectSummary.HasMidiFile, Converter={x:Static converters:BoolToIconConverter.Instance}}"
+                                      FontSize="16"
+                                      VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 快速操作 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="快速操作" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <UniformGrid Columns="2" Rows="2">
+                        <Button Content="📝 编辑歌词" 
+                               Command="{Binding NavigateToLyricsEditorCommand}"
+                               Margin="8"
+                               Padding="20,12"
+                               HorizontalAlignment="Stretch" />
+                        
+                        <Button Content="🤖 AI 对话" 
+                               Command="{Binding NavigateToAIChatCommand}"
+                               Margin="8"
+                               Padding="20,12"
+                               HorizontalAlignment="Stretch" />
+                        
+                        <Button Content="🎵 MIDI 分析" 
+                               Command="{Binding NavigateToMidiAnalysisCommand}"
+                               Margin="8"
+                               Padding="20,12"
+                               HorizontalAlignment="Stretch" />
+                        
+                        <Button Content="⚙️ 项目设置" 
+                               Command="{Binding NavigateToProjectSettingsCommand}"
+                               Margin="8"
+                               Padding="20,12"
+                               HorizontalAlignment="Stretch" />
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- 提示信息 -->
+            <Border Background="#DBEAFE"
+                    CornerRadius="8"
+                    Padding="16">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="💡 提示" 
+                              FontWeight="Bold"
+                              Foreground="#1E40AF" />
+                    <TextBlock Text="使用左侧导航菜单或快速操作按钮切换到不同的功能模块。"
+                              Foreground="#1E40AF"
+                              TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

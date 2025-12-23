@@ -1,0 +1,198 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:converters="using:Musicify.Desktop.Views"
+             x:Class="Musicify.Desktop.Views.MidiAnalysisView"
+             x:DataType="vm:MidiAnalysisViewModel">
+    
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="24">
+            <!-- 标题 -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="🎵 MIDI 分析" 
+                          FontSize="32" 
+                          FontWeight="Bold"
+                          Foreground="#1F2937" />
+                <TextBlock Text="分析 MIDI 文件，提取旋律特征和节奏模式" 
+                          FontSize="16"
+                          Foreground="#6B7280" />
+            </StackPanel>
+
+            <!-- MIDI 文件选择 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="MIDI 文件" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" 
+                                Text="{Binding SelectedMidiFilePath, Mode=TwoWay}"
+                                Watermark="MIDI 文件路径..."
+                                IsReadOnly="True"
+                                Margin="0,0,10,0" />
+                        <Button Grid.Column="1" 
+                               Content="📁 选择文件"
+                               Command="{Binding SelectMidiFileCommand}"
+                               Padding="20,10" />
+                    </Grid>
+                    
+                    <Button Content="🔄 分析 MIDI 文件"
+                           Command="{Binding AnalyzeMidiFileCommand}"
+                           IsEnabled="{Binding AnalyzeMidiFileCommand, Converter={x:Static converters:CommandCanExecuteConverter.Instance}}"
+                           HorizontalAlignment="Stretch"
+                           Padding="20,12"
+                           IsVisible="{Binding IsAnalyzing, Converter={x:Static converters:BoolToInverseConverter.Instance}}" />
+                    
+                    <StackPanel IsVisible="{Binding IsAnalyzing}"
+                               HorizontalAlignment="Center"
+                               Spacing="10">
+                        <TextBlock Text="正在分析..." 
+                                  FontSize="14"
+                                  Foreground="#6B7280" />
+                        <ProgressBar IsIndeterminate="True"
+                                    Width="200"
+                                    Height="4" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- MIDI 文件信息 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1"
+                    IsVisible="{Binding MidiFileInfo, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="文件信息" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" 
+                                   Text="文件路径:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                   Text="{Binding MidiFileInfo.FilePath}"
+                                   Foreground="#1F2937"
+                                   TextWrapping="Wrap" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" 
+                                   Text="音轨数量:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" 
+                                   Text="{Binding MidiFileInfo.TrackCount}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" 
+                                   Text="时长:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" 
+                                   Text="{Binding MidiFileInfo.Duration, StringFormat='{}{0:mm\\:ss}'}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" 
+                                   Text="Ticks/Quarter:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" 
+                                   Text="{Binding MidiFileInfo.TicksPerQuarterNote}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="4" Grid.Column="0" 
+                                   Text="速度 (BPM):" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" 
+                                   Text="{Binding MidiFileInfo.Tempo}"
+                                   Foreground="#1F2937" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 分析结果 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1"
+                    IsVisible="{Binding AnalysisResult, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="分析结果" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" 
+                                   Text="总音符数:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                   Text="{Binding AnalysisResult.TotalNotes}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" 
+                                   Text="音域范围:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" 
+                                   Text="{Binding AnalysisResult.NoteRange, Converter={x:Static converters:NoteRangeToStringConverter.Instance}}"
+                                   Foreground="#1F2937" />
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" 
+                                   Text="节奏模式:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="2" Grid.Column="0" 
+                                   Text="节奏模式:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" 
+                                   Text="{Binding AnalysisResult.RhythmPatterns, Converter={x:Static converters:DictionaryToStringConverter.Instance}}"
+                                   Foreground="#1F2937"
+                                   TextWrapping="Wrap" />
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" 
+                                   Text="调式信息:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="3" Grid.Column="1" 
+                                   Text="{Binding AnalysisResult.ModeInfo.DetectedMode}"
+                                   Foreground="#1F2937"
+                                   TextWrapping="Wrap" />
+                        
+                        <TextBlock Grid.Row="4" Grid.Column="0" 
+                                   Text="音程分布:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563" />
+                        <TextBlock Grid.Row="4" Grid.Column="1" 
+                                   Text="{Binding AnalysisResult.IntervalDistribution, Converter={x:Static converters:DictionaryToStringConverter.Instance}}"
+                                   Foreground="#1F2937"
+                                   TextWrapping="Wrap" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 错误消息 -->
+            <Border Background="#FEE2E2"
+                    CornerRadius="8"
+                    Padding="16"
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <TextBlock Text="{Binding ErrorMessage}"
+                          Foreground="#DC2626"
+                          TextWrapping="Wrap" />
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

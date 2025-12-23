@@ -1,0 +1,16 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:Musicify.Desktop.Converters"
+             x:Class="Musicify.Desktop.App"
+             RequestedThemeVariant="Dark">
+    <Application.Resources>
+        <converters:StepToBrushConverter x:Key="StepToBrushConverter" />
+        <converters:StepToForegroundConverter x:Key="StepToForegroundConverter" />
+        <converters:EqualToConverter x:Key="EqualToConverter" />
+        <converters:LessThanConverter x:Key="LessThanConverter" />
+    </Application.Resources>
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="/Styles/ButtonStyles.axaml"/>
+    </Application.Styles>
+</Application>

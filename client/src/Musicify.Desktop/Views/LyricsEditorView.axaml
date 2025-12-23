@@ -1,0 +1,128 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:ae="using:AvaloniaEdit"
+             x:Class="Musicify.Desktop.Views.LyricsEditorView"
+             x:DataType="vm:LyricsEditorViewModel">
+    
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveLyricsCommand}" />
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding FormatLyricsCommand}" />
+        <KeyBinding Gesture="Ctrl+P" Command="{Binding TogglePreviewCommand}" />
+        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
+        <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
+    </UserControl.KeyBindings>
+    
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 工具栏 -->
+        <Border Grid.Row="0" 
+                Background="#FAFAFA" 
+                BorderBrush="#E5E7EB" 
+                BorderThickness="0,0,0,1" 
+                Padding="10,5">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="📝 歌词编辑器" 
+                          FontSize="18" 
+                          FontWeight="Bold"
+                          Foreground="#1F2937"
+                          VerticalAlignment="Center" />
+                <Separator />
+                <Button Content="💾 保存" 
+                       Command="{Binding SaveLyricsCommand}"
+                       IsEnabled="{Binding IsModified}"
+                       ToolTip.Tip="Ctrl+S" />
+                <Button Content="↶ 撤销" 
+                       Command="{Binding UndoCommand}"
+                       ToolTip.Tip="Ctrl+Z" />
+                <Button Content="↷ 重做" 
+                       Command="{Binding RedoCommand}"
+                       ToolTip.Tip="Ctrl+Y" />
+                <Separator />
+                <Button Content="📐 格式化" 
+                       Command="{Binding FormatLyricsCommand}"
+                       ToolTip.Tip="Ctrl+F" />
+                <Button Content="👁️ 预览" 
+                       Command="{Binding TogglePreviewCommand}"
+                       ToolTip.Tip="Ctrl+P" />
+            </StackPanel>
+        </Border>
+
+        <!-- 编辑器区域 -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*">
+            <!-- 编辑器 (单屏模式) -->
+            <ae:TextEditor Grid.Column="0" 
+                          Grid.ColumnSpan="3"
+                          Name="LyricsTextEditor"
+                          IsVisible="{Binding ShowPreview, Converter={x:Static BoolConverters.Not}}"
+                          FontFamily="Consolas, Courier New, monospace"
+                          FontSize="14"
+                          ShowLineNumbers="True"
+                          WordWrap="True"
+                          Background="#FFFFFF"
+                          Foreground="#1F2937" />
+
+            <!-- 分屏模式: 编辑器 + 预览 -->
+            <Grid Grid.Column="0" 
+                  Grid.ColumnSpan="3"
+                  IsVisible="{Binding ShowPreview}"
+                  ColumnDefinitions="*,Auto,*">
+                <!-- 编辑器 (左侧) -->
+                <ae:TextEditor Grid.Column="0"
+                              Name="LyricsTextEditorSplit"
+                              FontFamily="Consolas, Courier New, monospace"
+                              FontSize="14"
+                              ShowLineNumbers="True"
+                              WordWrap="True"
+                              Background="#FFFFFF"
+                              Foreground="#1F2937" />
+
+                <!-- 分隔线 -->
+                <Border Grid.Column="1" 
+                        Width="1" 
+                        Background="#E5E7EB" />
+
+                <!-- 预览区域 (右侧) -->
+                <ScrollViewer Grid.Column="2" Background="#F9FAFB">
+                    <TextBlock Text="{Binding LyricsText}"
+                              TextWrapping="Wrap"
+                              FontSize="16"
+                              LineHeight="28"
+                              Padding="20"
+                              Foreground="#1F2937" />
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- 状态栏 -->
+        <Border Grid.Row="2" 
+                Background="#F5F7FA" 
+                BorderBrush="#E5E7EB" 
+                BorderThickness="0,1,0,0" 
+                Padding="15,8">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
+                    <TextBlock>
+                        <Run Text="字数: " Foreground="#6B7280" />
+                        <Run Text="{Binding WordCount}" 
+                             Foreground="#1F2937" FontWeight="SemiBold" />
+                    </TextBlock>
+                    <TextBlock>
+                        <Run Text="段落: " Foreground="#6B7280" />
+                        <Run Text="{Binding SectionCount}" 
+                             Foreground="#1F2937" FontWeight="SemiBold" />
+                    </TextBlock>
+                    <TextBlock>
+                        <Run Text="行数: " Foreground="#6B7280" />
+                        <Run Text="{Binding LineCount}" 
+                             Foreground="#1F2937" FontWeight="SemiBold" />
+                    </TextBlock>
+                </StackPanel>
+                
+                <TextBlock Grid.Column="2" 
+                          Text="未保存" 
+                          Foreground="#DC2626"
+                          IsVisible="{Binding IsModified}" />
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

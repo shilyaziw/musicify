@@ -1,0 +1,206 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:converters="using:Musicify.Desktop.Views"
+             x:Class="Musicify.Desktop.Views.ProjectSettingsView"
+             x:DataType="vm:ProjectSettingsViewModel">
+    
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="24">
+            <!-- 标题 -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="⚙️ 项目设置" 
+                          FontSize="32" 
+                          FontWeight="Bold"
+                          Foreground="#1F2937" />
+                <TextBlock Text="编辑项目配置和歌曲规格" 
+                          FontSize="16"
+                          Foreground="#6B7280" />
+            </StackPanel>
+
+            <!-- 成功/错误消息 -->
+            <Border Background="#D1FAE5"
+                    CornerRadius="8"
+                    Padding="16"
+                    IsVisible="{Binding SuccessMessage, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <TextBlock Text="{Binding SuccessMessage}"
+                          Foreground="#065F46"
+                          TextWrapping="Wrap" />
+            </Border>
+            
+            <Border Background="#FEE2E2"
+                    CornerRadius="8"
+                    Padding="16"
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <TextBlock Text="{Binding ErrorMessage}"
+                          Foreground="#DC2626"
+                          TextWrapping="Wrap" />
+            </Border>
+
+            <!-- 基本信息 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="基本信息" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" 
+                                   Text="项目名称:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" 
+                                Text="{Binding ProjectName, Mode=TwoWay}"
+                                Watermark="请输入项目名称" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" 
+                                   Text="歌曲类型:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" 
+                                 ItemsSource="{Binding SongTypes}"
+                                 SelectedItem="{Binding SongType, Mode=TwoWay}" />
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" 
+                                   Text="时长:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" 
+                                Text="{Binding Duration, Mode=TwoWay}"
+                                Watermark="例: 3分30秒" />
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" 
+                                   Text="风格:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <ComboBox Grid.Row="3" Grid.Column="1" 
+                                 ItemsSource="{Binding Styles}"
+                                 SelectedItem="{Binding Style, Mode=TwoWay}" />
+                        
+                        <TextBlock Grid.Row="4" Grid.Column="0" 
+                                   Text="语言:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <ComboBox Grid.Row="4" Grid.Column="1" 
+                                 ItemsSource="{Binding Languages}"
+                                 SelectedItem="{Binding Language, Mode=TwoWay}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 受众定位 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="受众定位" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="150,*" RowDefinitions="Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" 
+                                   Text="年龄段:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" 
+                                 ItemsSource="{Binding AudienceAges}"
+                                 SelectedItem="{Binding AudienceAge, Mode=TwoWay}" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" 
+                                   Text="性别倾向:" 
+                                   FontWeight="Bold"
+                                   Foreground="#4B5563"
+                                   VerticalAlignment="Center" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" 
+                                 ItemsSource="{Binding AudienceGenders}"
+                                 SelectedItem="{Binding AudienceGender, Mode=TwoWay}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 目标平台 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="目标平台" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <StackPanel Spacing="8">
+                        <ItemsControl ItemsSource="{Binding Platforms}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding}"
+                                             Margin="0,4"
+                                             Tag="{Binding}"
+                                             Name="PlatformCheckBox" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 音调 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="音调" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <TextBox Text="{Binding Tone, Mode=TwoWay}"
+                            Watermark="例: 温暖、轻快、悲伤等"
+                            TextWrapping="Wrap"
+                            MinHeight="60" />
+                </StackPanel>
+            </Border>
+
+            <!-- 操作按钮 -->
+            <StackPanel Orientation="Horizontal" 
+                       HorizontalAlignment="Right" 
+                       Spacing="10">
+                <Button Content="🔄 重置"
+                       Command="{Binding ResetCommand}"
+                       Padding="20,10" />
+                <Button Content="💾 保存设置"
+                       Command="{Binding SaveSettingsCommand}"
+                       IsEnabled="{Binding SaveSettingsCommand, Converter={x:Static converters:CommandCanExecuteConverter.Instance}}"
+                       Padding="20,10"
+                       IsVisible="{Binding IsSaving, Converter={x:Static converters:BoolToInverseConverter.Instance}}" />
+                <StackPanel IsVisible="{Binding IsSaving}"
+                           Orientation="Horizontal"
+                           Spacing="10"
+                           VerticalAlignment="Center">
+                    <TextBlock Text="正在保存..." 
+                              Foreground="#6B7280" />
+                    <ProgressBar IsIndeterminate="True"
+                                Width="100"
+                                Height="4" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

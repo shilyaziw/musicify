@@ -1,0 +1,169 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:models="using:Musicify.Core.Models"
+             xmlns:converters="using:Musicify.Desktop.Views"
+             x:Class="Musicify.Desktop.Views.AIChatView"
+             x:DataType="vm:AIChatViewModel">
+    
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 工具栏 -->
+        <Border Grid.Row="0" 
+                Background="#FAFAFA" 
+                BorderBrush="#E5E7EB" 
+                BorderThickness="0,0,0,1" 
+                Padding="10,5">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="🤖 AI 对话" 
+                              FontSize="18" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937"
+                              VerticalAlignment="Center" />
+                    <Separator />
+                    <TextBlock Text="创作模式:" 
+                              Foreground="#6B7280"
+                              VerticalAlignment="Center" />
+                    <ComboBox SelectedItem="{Binding CreationMode, Mode=TwoWay}"
+                             ItemsSource="{Binding CreationModes}"
+                             MinWidth="120" />
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                    <TextBlock IsVisible="{Binding TokenUsage, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                        <Run Text="Token: " Foreground="#6B7280" />
+                        <Run Text="{Binding TokenUsage.TotalTokens}" 
+                             Foreground="#1F2937" FontWeight="SemiBold" />
+                    </TextBlock>
+                    <Button Content="🗑️ 清空" 
+                           Command="{Binding ClearHistoryCommand}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 消息列表 -->
+        <ScrollViewer Grid.Row="1" 
+                     Name="MessageScrollViewer"
+                     Background="#FFFFFF"
+                     VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Messages}" 
+                         Margin="20">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="models:ChatMessage">
+                        <Border Margin="0,10,0,0" 
+                               Padding="15"
+                               Background="{Binding Type, Converter={x:Static converters:StringToBrushConverter.Instance}}"
+                               CornerRadius="8"
+                               Name="MessageBorder">
+                            <Grid RowDefinitions="Auto,*,Auto">
+                                <!-- 消息头部 -->
+                                <Grid Grid.Row="0" ColumnDefinitions="Auto,*">
+                                    <TextBlock Grid.Column="0" 
+                                              Text="{Binding Type, Converter={x:Static converters:MessageTypeToIconConverter.Instance}}"
+                                              FontSize="16"
+                                              Margin="0,0,10,0" />
+                                    <TextBlock Grid.Column="1" 
+                                              Text="{Binding Type, Converter={x:Static converters:MessageTypeToLabelConverter.Instance}}"
+                                              FontWeight="Bold"
+                                              Foreground="#1F2937" />
+                                </Grid>
+                                
+                                <!-- 消息内容 -->
+                                <Grid Grid.Row="1" Margin="0,10,0,10">
+                                    <TextBlock Text="{Binding Content}"
+                                              TextWrapping="Wrap"
+                                              Foreground="#1F2937"
+                                              FontSize="14"
+                                              LineHeight="24"
+                                              Name="MessageContent" />
+                                    <!-- 流式生成指示器 -->
+                                    <TextBlock IsVisible="{Binding IsStreaming}"
+                                              Text="▊"
+                                              Foreground="#3B82F6"
+                                              FontSize="14"
+                                              Margin="2,0,0,0"
+                                              Opacity="0.8"
+                                              Name="StreamingIndicator">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform X="0" />
+                                        </TextBlock.RenderTransform>
+                                        <TextBlock.Styles>
+                                            <Style Selector="TextBlock">
+                                                <Style.Animations>
+                                                    <Animation Duration="0:0:1" IterationCount="Infinite">
+                                                        <KeyFrame Cue="0%">
+                                                            <Setter Property="Opacity" Value="1.0" />
+                                                        </KeyFrame>
+                                                        <KeyFrame Cue="50%">
+                                                            <Setter Property="Opacity" Value="0.3" />
+                                                        </KeyFrame>
+                                                        <KeyFrame Cue="100%">
+                                                            <Setter Property="Opacity" Value="1.0" />
+                                                        </KeyFrame>
+                                                    </Animation>
+                                                </Style.Animations>
+                                            </Style>
+                                        </TextBlock.Styles>
+                                    </TextBlock>
+                                </Grid>
+                                
+                                <!-- 消息底部 -->
+                                <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" 
+                                              Text="{Binding Timestamp, StringFormat='时间: {0:HH:mm}'}"
+                                              FontSize="12"
+                                              Foreground="#6B7280" />
+                                    <TextBlock Grid.Column="1" 
+                                              IsVisible="{Binding TokenCount, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                                        <Run Text="Token: " Foreground="#6B7280" />
+                                        <Run Text="{Binding TokenCount}" 
+                                             Foreground="#1F2937" FontWeight="SemiBold" />
+                                    </TextBlock>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 输入区域 -->
+        <Border Grid.Row="2" 
+                Background="#F5F7FA" 
+                BorderBrush="#E5E7EB" 
+                BorderThickness="0,1,0,0" 
+                Padding="15">
+            <Grid RowDefinitions="Auto,Auto">
+                <!-- 错误消息 -->
+                <TextBlock Grid.Row="0" 
+                          Text="{Binding ErrorMessage}"
+                          Foreground="#DC2626"
+                          FontSize="12"
+                          Margin="0,0,0,10"
+                          IsVisible="{Binding ErrorMessage, Converter={x:Static converters:IsNotNullConverter.Instance}}" />
+                
+                <!-- 输入框和按钮 -->
+                <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto">
+                    <TextBox Grid.Column="0" 
+                            Text="{Binding InputText, Mode=TwoWay}"
+                            Watermark="请输入您的创作需求..."
+                            AcceptsReturn="True"
+                            TextWrapping="Wrap"
+                            MinHeight="60"
+                            MaxHeight="120"
+                            Margin="0,0,10,0" />
+                    <Button Grid.Column="1" 
+                           Content="⏹️ 停止"
+                           Command="{Binding StopGenerationCommand}"
+                           IsEnabled="{Binding IsGenerating}"
+                           Margin="0,0,10,0"
+                           IsVisible="{Binding IsGenerating}" />
+                    <Button Grid.Column="2" 
+                           Content="📤 发送"
+                           Command="{Binding SendMessageCommand}"
+                           Padding="20,10" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

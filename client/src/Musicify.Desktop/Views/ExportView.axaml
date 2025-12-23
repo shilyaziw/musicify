@@ -1,0 +1,142 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:converters="using:Musicify.Desktop.Views"
+             x:Class="Musicify.Desktop.Views.ExportView"
+             x:DataType="vm:ExportViewModel">
+    
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="24">
+            <!-- 标题 -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="📤 导出歌词" 
+                          FontSize="32" 
+                          FontWeight="Bold"
+                          Foreground="#1F2937" />
+                <TextBlock Text="将歌词导出为不同格式的文件" 
+                          FontSize="16"
+                          Foreground="#6B7280" />
+            </StackPanel>
+
+            <!-- 成功/错误消息 -->
+            <Border Background="#D1FAE5"
+                    CornerRadius="8"
+                    Padding="16"
+                    IsVisible="{Binding SuccessMessage, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <TextBlock Text="{Binding SuccessMessage}"
+                          Foreground="#065F46"
+                          TextWrapping="Wrap" />
+            </Border>
+            
+            <Border Background="#FEE2E2"
+                    CornerRadius="8"
+                    Padding="16"
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <TextBlock Text="{Binding ErrorMessage}"
+                          Foreground="#DC2626"
+                          TextWrapping="Wrap" />
+            </Border>
+
+            <!-- 歌词预览 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1"
+                    IsVisible="{Binding LyricsContent, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="歌词预览" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <ScrollViewer MaxHeight="200">
+                        <TextBlock Text="{Binding LyricsContent, Converter={x:Static converters:LyricsContentToPreviewConverter.Instance}}"
+                                  Foreground="#1F2937"
+                                  TextWrapping="Wrap" />
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+
+            <!-- 导出格式选择 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="导出格式" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <StackPanel Spacing="8">
+                        <ItemsControl ItemsSource="{Binding ExportFormats}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Tag="{Binding Id}"
+                                                Margin="0,4"
+                                                Name="FormatRadioButton">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding Name}" />
+                                            <TextBlock Text="{Binding Description}" 
+                                                      FontSize="12"
+                                                      Foreground="#6B7280" />
+                                        </StackPanel>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 导出路径 -->
+            <Border Background="#F9FAFB"
+                    CornerRadius="12"
+                    Padding="24"
+                    BorderBrush="#E5E7EB"
+                    BorderThickness="1">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="导出路径" 
+                              FontSize="20" 
+                              FontWeight="Bold"
+                              Foreground="#1F2937" />
+                    
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox Grid.Column="0" 
+                                Text="{Binding ExportPath, Mode=TwoWay}"
+                                Watermark="选择导出文件路径..."
+                                IsReadOnly="True"
+                                Margin="0,0,10,0" />
+                        <Button Grid.Column="1" 
+                               Content="📁 选择路径"
+                               Command="{Binding SelectExportPathCommand}"
+                               Padding="20,10" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- 操作按钮 -->
+            <StackPanel Orientation="Horizontal" 
+                       HorizontalAlignment="Right" 
+                       Spacing="10">
+                <Button Content="📤 导出"
+                       Command="{Binding ExportCommand}"
+                       IsEnabled="{Binding ExportCommand, Converter={x:Static converters:CommandCanExecuteConverter.Instance}}"
+                       Padding="20,10"
+                       IsVisible="{Binding IsExporting, Converter={x:Static converters:BoolToInverseConverter.Instance}}" />
+                <StackPanel IsVisible="{Binding IsExporting}"
+                           Orientation="Horizontal"
+                           Spacing="10"
+                           VerticalAlignment="Center">
+                    <TextBlock Text="正在导出..." 
+                              Foreground="#6B7280" />
+                    <ProgressBar IsIndeterminate="True"
+                                Width="100"
+                                Height="4" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

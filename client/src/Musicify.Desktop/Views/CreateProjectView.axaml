@@ -1,0 +1,318 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Musicify.Core.ViewModels"
+             xmlns:converters="using:Musicify.Desktop.Converters"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="Musicify.Desktop.Views.CreateProjectView"
+             x:DataType="vm:CreateProjectViewModel">
+
+    <Design.DataContext>
+        <vm:CreateProjectViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*,Auto" Background="#F5F7FA">
+        <!-- 进度条 -->
+        <Border Grid.Row="0" Background="White" BoxShadow="0 2 4 0 #10000000" Padding="40,25">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Step 1 -->
+                <StackPanel Grid.Column="0" Spacing="10">
+                    <Border Height="4" Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=1}"
+                            CornerRadius="2" />
+                    <TextBlock Text="1. 基本信息" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding CurrentStep, Converter={StaticResource StepToForegroundConverter}, ConverterParameter=1}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Step 2 -->
+                <StackPanel Grid.Column="1" Spacing="10">
+                    <Border Height="4" Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=2}"
+                            CornerRadius="2" />
+                    <TextBlock Text="2. 歌曲信息" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding CurrentStep, Converter={StaticResource StepToForegroundConverter}, ConverterParameter=2}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Step 3 -->
+                <StackPanel Grid.Column="2" Spacing="10">
+                    <Border Height="4" Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=3}"
+                            CornerRadius="2" />
+                    <TextBlock Text="3. 创作模式" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding CurrentStep, Converter={StaticResource StepToForegroundConverter}, ConverterParameter=3}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Step 4 -->
+                <StackPanel Grid.Column="3" Spacing="10">
+                    <Border Height="4" Background="{Binding CurrentStep, Converter={StaticResource StepToBrushConverter}, ConverterParameter=4}"
+                            CornerRadius="2" />
+                    <TextBlock Text="4. 确认创建" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{Binding CurrentStep, Converter={StaticResource StepToForegroundConverter}, ConverterParameter=4}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 步骤内容 -->
+        <ScrollViewer Grid.Row="1">
+            <Grid>
+                <!-- Step 1: 基本信息 -->
+                <StackPanel MaxWidth="600" Margin="40" Spacing="30"
+                           IsVisible="{Binding CurrentStep, Converter={StaticResource EqualToConverter}, ConverterParameter=1}">
+                    <TextBlock Text="📝 项目基本信息" FontSize="32" FontWeight="Bold" Foreground="#1F2937" />
+                    
+                    <!-- 项目名称 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="项目名称 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <TextBox Text="{Binding ProjectName}"
+                                 Watermark="例如: 夏日回忆"
+                                 FontSize="16" Padding="15" Height="50" />
+                        <TextBlock Text="{Binding ValidationErrors[ProjectName]}"
+                                   IsVisible="{Binding ValidationErrors[ProjectName], Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   Foreground="#DC2626" FontSize="14" />
+                    </StackPanel>
+
+                    <!-- 项目路径 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="项目路径 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0" Text="{Binding ProjectPath}"
+                                     Watermark="选择项目保存位置"
+                                     FontSize="16" Padding="15" Height="50" IsReadOnly="True" />
+                            <Button Grid.Column="1" Content="浏览..." Command="{Binding BrowseProjectPathCommand}"
+                                    Classes="secondary" Margin="10,0,0,0" Width="100" Height="50" />
+                        </Grid>
+                        <TextBlock Text="{Binding ValidationErrors[ProjectPath]}"
+                                   IsVisible="{Binding ValidationErrors[ProjectPath], Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   Foreground="#DC2626" FontSize="14" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step 2: 歌曲信息 -->
+                <StackPanel MaxWidth="600" Margin="40" Spacing="30"
+                           IsVisible="{Binding CurrentStep, Converter={StaticResource EqualToConverter}, ConverterParameter=2}">
+                    <TextBlock Text="🎵 歌曲信息" FontSize="32" FontWeight="Bold" Foreground="#1F2937" />
+                    
+                    <!-- 歌曲类型 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="歌曲类型 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <ComboBox ItemsSource="{Binding SongTypes}" 
+                                  SelectedItem="{Binding SongType}"
+                                  FontSize="16" Padding="15" Height="50" />
+                    </StackPanel>
+
+                    <!-- 时长 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="目标时长 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <TextBox Text="{Binding Duration}"
+                                 Watermark="例如: 3分30秒"
+                                 FontSize="16" Padding="15" Height="50" />
+                    </StackPanel>
+
+                    <!-- 风格 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="风格基调 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <ComboBox ItemsSource="{Binding Styles}" 
+                                  SelectedItem="{Binding Style}"
+                                  FontSize="16" Padding="15" Height="50" />
+                    </StackPanel>
+
+                    <!-- 语言 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="歌词语言 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <ComboBox ItemsSource="{Binding Languages}" 
+                                  SelectedItem="{Binding Language}"
+                                  FontSize="16" Padding="15" Height="50" />
+                    </StackPanel>
+
+                    <!-- 受众信息 -->
+                    <Grid ColumnDefinitions="*,*">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="10">
+                            <TextBlock Text="受众年龄段 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                            <ComboBox ItemsSource="{Binding AudienceAges}" 
+                                      SelectedItem="{Binding AudienceAge}"
+                                      FontSize="16" Padding="15" Height="50" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Spacing="10" Margin="20,0,0,0">
+                            <TextBlock Text="受众性别 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                            <ComboBox ItemsSource="{Binding AudienceGenders}" 
+                                      SelectedItem="{Binding AudienceGender}"
+                                      FontSize="16" Padding="15" Height="50" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- 目标平台 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="目标平台 *" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <TextBlock Text="至少选择一个平台" FontSize="14" Foreground="#6B7280" />
+                        <ItemsControl ItemsSource="{Binding Platforms}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding}" 
+                                              Margin="0,0,15,10"
+                                              Tag="{Binding}"
+                                              Click="OnPlatformCheckBoxClick" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- 音调（可选） -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="音调描述（可选）" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <TextBox Text="{Binding Tone}"
+                                 Watermark="例如: 温暖治愈、黑暗压抑"
+                                 FontSize="16" Padding="15" Height="50" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step 3: 创作模式 -->
+                <StackPanel MaxWidth="600" Margin="40" Spacing="30"
+                           IsVisible="{Binding CurrentStep, Converter={StaticResource EqualToConverter}, ConverterParameter=3}">
+                    <TextBlock Text="🎨 创作模式" FontSize="32" FontWeight="Bold" Foreground="#1F2937" />
+                    
+                    <!-- 创作模式选择 -->
+                    <StackPanel Spacing="20">
+                        <RadioButton Content="教练模式 - AI 引导逐步创作，适合深度打磨"
+                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=coach}"
+                                    Tag="coach"
+                                    Click="OnCreationModeRadioButtonClick"
+                                    FontSize="16"
+                                    Padding="15"
+                                    Margin="0,0,0,10" />
+                        <RadioButton Content="快速模式 - AI 一键生成完整歌词，适合快速创作"
+                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=express}"
+                                    Tag="express"
+                                    Click="OnCreationModeRadioButtonClick"
+                                    FontSize="16"
+                                    Padding="15"
+                                    Margin="0,0,0,10" />
+                        <RadioButton Content="混合模式 - 结合引导和自动生成，灵活创作"
+                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=hybrid}"
+                                    Tag="hybrid"
+                                    Click="OnCreationModeRadioButtonClick"
+                                    FontSize="16"
+                                    Padding="15"
+                                    Margin="0,0,0,10" />
+                    </StackPanel>
+
+                    <!-- MIDI 文件选择（仅教练/混合模式） -->
+                    <StackPanel Spacing="10" IsVisible="{Binding ShowMidiOption}">
+                        <TextBlock Text="参考 MIDI 文件（可选）" FontSize="16" FontWeight="SemiBold" Foreground="#374151" />
+                        <TextBlock Text="上传 MIDI 文件可以帮助 AI 更好地理解旋律和节奏" 
+                                  FontSize="14" 
+                                  Foreground="#6B7280" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0" Text="{Binding MidiFilePath}"
+                                     Watermark="选择 MIDI 文件..."
+                                     FontSize="16" Padding="15" Height="50" IsReadOnly="True" />
+                            <Button Grid.Column="1" Content="浏览..." Command="{Binding SelectMidiFileCommand}"
+                                    Classes="secondary" Margin="10,0,0,0" Width="100" Height="50" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step 4: 确认创建 -->
+                <StackPanel MaxWidth="600" Margin="40" Spacing="30"
+                           IsVisible="{Binding CurrentStep, Converter={StaticResource EqualToConverter}, ConverterParameter=4}">
+                    <TextBlock Text="✅ 确认创建" FontSize="32" FontWeight="Bold" Foreground="#1F2937" />
+                    
+                    <Border Background="White" 
+                            CornerRadius="12" 
+                            Padding="30" 
+                            BorderBrush="#E5E7EB" 
+                            BorderThickness="1"
+                            BoxShadow="0 2 8 0 #10000000">
+                        <StackPanel Spacing="15">
+                            <TextBlock Text="项目信息摘要" FontSize="18" FontWeight="Bold" Foreground="#1F2937" Margin="0,0,0,10" />
+                            <TextBlock Text="{Binding ProjectSummary}" 
+                                      FontSize="14" 
+                                      Foreground="#374151"
+                                      TextWrapping="Wrap"
+                                      LineHeight="24" />
+                        </StackPanel>
+                    </Border>
+                    
+                    <TextBlock Text="请确认以上信息无误后，点击&quot;创建项目&quot;按钮完成创建。" 
+                              FontSize="14" 
+                              Foreground="#6B7280"
+                              TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- 底部按钮 -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E5E7EB" BorderThickness="0,1,0,0" Padding="40,20">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <!-- 取消按钮 -->
+                <Button Grid.Column="0" Content="取消" Command="{Binding CancelCommand}"
+                        Classes="secondary" Width="120" Height="48" />
+
+                <!-- 上一步按钮 -->
+                <Button Grid.Column="2" Content="上一步" Command="{Binding PreviousStepCommand}"
+                        Classes="secondary" Width="120" Height="48" Margin="0,0,15,0" />
+
+                <!-- 下一步/创建按钮 -->
+                <Grid Grid.Column="3">
+                    <Button Command="{Binding NextStepCommand}"
+                            IsVisible="{Binding CurrentStep, Converter={StaticResource LessThanConverter}, ConverterParameter=4}"
+                            Classes="primary" Width="120" Height="48">
+                        <TextBlock Text="下一步" FontSize="16" FontWeight="SemiBold" />
+                    </Button>
+
+                    <Button Command="{Binding CreateProjectCommand}"
+                            IsVisible="{Binding CurrentStep, Converter={StaticResource EqualToConverter}, ConverterParameter=4}"
+                            Classes="primary" Width="140" Height="48">
+                        <Button.Content>
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" Spacing="8" 
+                                           IsVisible="{Binding !IsCreating}"
+                                           HorizontalAlignment="Center">
+                                    <Path Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+                                          Fill="White" Width="20" Height="20" Stretch="Uniform" />
+                                    <TextBlock Text="创建项目" FontSize="16" FontWeight="SemiBold" />
+                                </StackPanel>
+                                <TextBlock Text="创建中..." 
+                                          IsVisible="{Binding IsCreating}" 
+                                          FontSize="16" 
+                                          FontWeight="SemiBold"
+                                          HorizontalAlignment="Center" />
+                            </Grid>
+                        </Button.Content>
+                    </Button>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- 错误提示 Toast -->
+        <Border Grid.Row="0" Grid.RowSpan="3"
+                IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Background="#80000000" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <Border Background="White" CornerRadius="12" Padding="30" MaxWidth="500" BoxShadow="0 8 32 0 #20000000">
+                <StackPanel Spacing="20">
+                    <Path Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+                          Fill="#DC2626" Width="48" Height="48" Stretch="Uniform" HorizontalAlignment="Center" />
+                    <TextBlock Text="{Binding ErrorMessage}" FontSize="16" Foreground="#1F2937" TextWrapping="Wrap" TextAlignment="Center" />
+                    <Button Content="确定" Command="{Binding ClearErrorCommand}" Classes="primary" HorizontalAlignment="Center" Width="120" Height="44" />
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>
