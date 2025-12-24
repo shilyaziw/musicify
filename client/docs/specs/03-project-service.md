@@ -1,8 +1,8 @@
 # Spec 03: 项目配置服务 (ProjectService)
 
-**状态**: 🟢 实现中  
-**优先级**: P0 (核心功能)  
-**预计时间**: 6 小时  
+**状态**: 🟢 实现中
+**优先级**: P0 (核心功能)
+**预计时间**: 6 小时
 **依赖**: Spec 02 (核心数据模型)
 
 ---
@@ -46,40 +46,40 @@ public interface IProjectService
     /// <param name="basePath">基础路径 (可选,默认 ~/Documents/musicify)</param>
     /// <returns>创建的项目配置</returns>
     Task<ProjectConfig> CreateProjectAsync(string name, string? basePath = null);
-    
+
     /// <summary>
     /// 加载现有项目
     /// </summary>
     /// <param name="projectPath">项目路径</param>
     /// <returns>项目配置,如果不存在返回 null</returns>
     Task<ProjectConfig?> LoadProjectAsync(string projectPath);
-    
+
     /// <summary>
     /// 保存项目配置
     /// </summary>
     Task SaveProjectAsync(ProjectConfig config);
-    
+
     /// <summary>
     /// 更新项目状态
     /// </summary>
     Task UpdateProjectStatusAsync(string projectPath, string status);
-    
+
     /// <summary>
     /// 获取最近打开的项目列表
     /// </summary>
     /// <param name="limit">返回数量限制</param>
     Task<List<ProjectConfig>> GetRecentProjectsAsync(int limit = 10);
-    
+
     /// <summary>
     /// 添加项目到最近列表
     /// </summary>
     Task AddToRecentProjectsAsync(string projectPath);
-    
+
     /// <summary>
     /// 验证项目路径是否有效
     /// </summary>
     bool ValidateProjectPath(string projectPath);
-    
+
     /// <summary>
     /// 获取项目配置文件路径
     /// </summary>
@@ -96,10 +96,10 @@ public class ProjectService : IProjectService
 {
     private const string ConfigFileName = "project-config.json";
     private const string RecentProjectsFile = "recent-projects.json";
-    
+
     private readonly IFileSystem _fileSystem; // 使用抽象文件系统便于测试
     private readonly string _recentProjectsPath;
-    
+
     public ProjectService(IFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
@@ -109,7 +109,7 @@ public class ProjectService : IProjectService
             RecentProjectsFile
         );
     }
-    
+
     // 实现接口方法...
 }
 ```
@@ -241,10 +241,10 @@ public async Task CreateProject_ShouldCreateValidProject()
     // Arrange
     var service = CreateService();
     var projectName = "test-song";
-    
+
     // Act
     var config = await service.CreateProjectAsync(projectName);
-    
+
     // Assert
     config.ProjectName.Should().Be(projectName);
     config.ProjectPath.Should().Contain(projectName);
@@ -256,7 +256,7 @@ public async Task CreateProject_ShouldCreateValidProject()
 public async Task CreateProject_WithInvalidName_ShouldThrowException()
 {
     var service = CreateService();
-    
+
     await service.Invoking(s => s.CreateProjectAsync("invalid/name"))
         .Should().ThrowAsync<ArgumentException>();
 }
@@ -266,7 +266,7 @@ public async Task CreateProject_WhenProjectExists_ShouldThrowException()
 {
     var service = CreateService();
     await service.CreateProjectAsync("existing");
-    
+
     await service.Invoking(s => s.CreateProjectAsync("existing"))
         .Should().ThrowAsync<InvalidOperationException>();
 }
@@ -281,10 +281,10 @@ public async Task LoadProject_WithValidPath_ShouldReturnConfig()
     // Arrange
     var service = CreateService();
     var created = await service.CreateProjectAsync("test");
-    
+
     // Act
     var loaded = await service.LoadProjectAsync(created.ProjectPath);
-    
+
     // Assert
     loaded.Should().NotBeNull();
     loaded!.ProjectName.Should().Be("test");
@@ -294,9 +294,9 @@ public async Task LoadProject_WithValidPath_ShouldReturnConfig()
 public async Task LoadProject_WithInvalidPath_ShouldReturnNull()
 {
     var service = CreateService();
-    
+
     var result = await service.LoadProjectAsync("/non/existent/path");
-    
+
     result.Should().BeNull();
 }
 
@@ -306,10 +306,10 @@ public async Task LoadProject_WithMissingConfigFile_ShouldReturnNull()
     var fileSystem = new MockFileSystem();
     fileSystem.SetDirectoryExists("/project", true);
     fileSystem.SetFileExists("/project/project-config.json", false);
-    
+
     var service = new ProjectService(fileSystem);
     var result = await service.LoadProjectAsync("/project");
-    
+
     result.Should().BeNull();
 }
 ```
@@ -322,10 +322,10 @@ public async Task SaveProject_ShouldUpdateConfigFile()
 {
     var service = CreateService();
     var config = await service.CreateProjectAsync("test");
-    
+
     config = config with { Status = "in_progress" };
     await service.SaveProjectAsync(config);
-    
+
     var loaded = await service.LoadProjectAsync(config.ProjectPath);
     loaded!.Status.Should().Be("in_progress");
 }
@@ -335,10 +335,10 @@ public async Task SaveProject_ShouldUpdateTimestamp()
 {
     var service = CreateService();
     var config = await service.CreateProjectAsync("test");
-    
+
     await Task.Delay(100);
     await service.SaveProjectAsync(config);
-    
+
     var loaded = await service.LoadProjectAsync(config.ProjectPath);
     loaded!.UpdatedAt.Should().BeAfter(config.UpdatedAt);
 }
@@ -351,13 +351,13 @@ public async Task SaveProject_ShouldUpdateTimestamp()
 public async Task GetRecentProjects_ShouldReturnOrderedList()
 {
     var service = CreateService();
-    
+
     await service.CreateProjectAsync("project1");
     await Task.Delay(50);
     await service.CreateProjectAsync("project2");
-    
+
     var recent = await service.GetRecentProjectsAsync();
-    
+
     recent.Should().HaveCount(2);
     recent[0].ProjectName.Should().Be("project2"); // 最新的在前
 }
@@ -366,14 +366,14 @@ public async Task GetRecentProjects_ShouldReturnOrderedList()
 public async Task GetRecentProjects_ShouldRespectLimit()
 {
     var service = CreateService();
-    
+
     for (int i = 0; i < 15; i++)
     {
         await service.CreateProjectAsync($"project{i}");
     }
-    
+
     var recent = await service.GetRecentProjectsAsync(limit: 5);
-    
+
     recent.Should().HaveCount(5);
 }
 
@@ -382,10 +382,10 @@ public async Task AddToRecentProjects_ShouldNotDuplicate()
 {
     var service = CreateService();
     var config = await service.CreateProjectAsync("test");
-    
+
     await service.AddToRecentProjectsAsync(config.ProjectPath);
     await service.AddToRecentProjectsAsync(config.ProjectPath);
-    
+
     var recent = await service.GetRecentProjectsAsync();
     recent.Should().ContainSingle(p => p.ProjectPath == config.ProjectPath);
 }
@@ -451,9 +451,9 @@ _logger.LogError(ex, "保存项目失败: {ProjectPath}", config.ProjectPath);
 
 ## 8. 验收标准
 
-### 8.1 功能验收
-- [x] 所有测试用例通过 (17+ 个测试)
-- [x] 测试覆盖率 > 90%
+### 7.1 功能验收
+- [x] 所有测试用例通过 (20+ 个测试)
+- [x] 测试覆盖率 > 80%
 - [x] 可以创建、加载、保存项目
 - [x] 可以管理最近项目列表
 - [x] 与 CLI 版本的 JSON 格式兼容

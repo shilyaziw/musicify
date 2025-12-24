@@ -15,9 +15,15 @@ public class ProjectSettingsViewModel : ViewModelBase
 {
     private readonly IProjectService _projectService;
     private readonly IFileSystem _fileSystem;
-    
+
+    // 缓存JsonSerializerOptions实例，避免重复创建
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private ProjectConfig? _currentProject;
-    private SongSpec? _songSpec;
     private bool _isSaving;
     private string? _errorMessage;
     private string? _successMessage;
@@ -28,14 +34,14 @@ public class ProjectSettingsViewModel : ViewModelBase
     private string _duration = string.Empty;
     private string _style = string.Empty;
     private string _language = string.Empty;
-    
+
     // 受众信息
     private string _audienceAge = string.Empty;
     private string _audienceGender = string.Empty;
-    
+
     // 目标平台
     private List<string> _selectedPlatforms = new();
-    
+
     // 音调
     private string _tone = string.Empty;
 
@@ -49,7 +55,7 @@ public class ProjectSettingsViewModel : ViewModelBase
         // 初始化命令
         SaveSettingsCommand = new AsyncRelayCommand(SaveSettingsAsync, CanSave);
         ResetCommand = new RelayCommand(Reset);
-        
+
         // 初始化选项列表
         SongTypes = new List<string>(Musicify.Core.Models.Constants.SongTypes.All);
         Styles = new List<string>(Musicify.Core.Models.Constants.Styles.All);
@@ -154,7 +160,7 @@ public class ProjectSettingsViewModel : ViewModelBase
             }
         }
     }
-    
+
     /// <summary>
     /// 检查平台是否被选中
     /// </summary>
@@ -162,7 +168,7 @@ public class ProjectSettingsViewModel : ViewModelBase
     {
         return SelectedPlatforms.Contains(platform);
     }
-    
+
     /// <summary>
     /// 切换平台选择状态
     /// </summary>
@@ -280,7 +286,7 @@ public class ProjectSettingsViewModel : ViewModelBase
     /// <summary>
     /// 设置当前项目
     /// </summary>
-    public async Task SetProjectAsync(ProjectConfig project)
+    public void SetProjectAsync(ProjectConfig project)
     {
         CurrentProject = project;
     }
@@ -301,7 +307,7 @@ public class ProjectSettingsViewModel : ViewModelBase
         }
 
         ProjectName = CurrentProject.Name;
-        
+
         if (CurrentProject.Spec != null)
         {
             SongType = CurrentProject.Spec.SongType ?? string.Empty;
@@ -309,13 +315,13 @@ public class ProjectSettingsViewModel : ViewModelBase
             Style = CurrentProject.Spec.Style ?? string.Empty;
             Language = CurrentProject.Spec.Language ?? string.Empty;
             Tone = CurrentProject.Spec.Tone ?? string.Empty;
-            
+
             if (CurrentProject.Spec.Audience != null)
             {
                 AudienceAge = CurrentProject.Spec.Audience.Age ?? string.Empty;
                 AudienceGender = CurrentProject.Spec.Audience.Gender ?? string.Empty;
             }
-            
+
             SelectedPlatforms = CurrentProject.Spec.TargetPlatform?.ToList() ?? new List<string>();
         }
         else
@@ -388,17 +394,13 @@ public class ProjectSettingsViewModel : ViewModelBase
 
             // 保存项目
             await _projectService.SaveProjectAsync(updatedProject);
-            
+
             // 保存规格到文件
             if (!string.IsNullOrWhiteSpace(updatedProject.ProjectPath))
             {
                 var specPath = Path.Combine(updatedProject.ProjectPath, "spec.json");
-                var specJson = JsonSerializer.Serialize(spec, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
-                
+                var specJson = JsonSerializer.Serialize(spec, JsonOptions);
+
                 await _fileSystem.WriteAllTextAsync(specPath, specJson);
             }
 
@@ -444,7 +446,7 @@ public class ProjectSettingsViewModel : ViewModelBase
             SelectedPlatforms = new List<string>();
             Tone = string.Empty;
         }
-        
+
         ErrorMessage = null;
         SuccessMessage = null;
     }

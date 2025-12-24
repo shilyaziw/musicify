@@ -1,3 +1,8 @@
+using System;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -7,11 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Musicify.Core.Models;
 using Musicify.Core.ViewModels;
 using Musicify.Desktop;
-using System;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Windows.Input;
 
 namespace Musicify.Desktop.Views;
 
@@ -22,7 +22,7 @@ public partial class AIChatView : UserControl
     public AIChatView()
     {
         InitializeComponent();
-        
+
         // 从 DI 容器获取 ViewModel
         var app = Application.Current as App;
         if (app?.Services != null)
@@ -31,10 +31,10 @@ public partial class AIChatView : UserControl
             if (viewModel != null)
             {
                 DataContext = viewModel;
-                
+
                 // 设置内容更新回调（用于流式响应时的滚动）
                 viewModel.SetContentUpdateCallback(SmoothScrollToBottom);
-                
+
                 // 监听消息变化,自动滚动到底部
                 viewModel.Messages.CollectionChanged += (s, e) =>
                 {
@@ -61,7 +61,7 @@ public partial class AIChatView : UserControl
             }, Avalonia.Threading.DispatcherPriority.Background);
         }
     }
-    
+
     /// <summary>
     /// 平滑滚动到底部（用于流式更新）
     /// </summary>
@@ -296,8 +296,10 @@ public class DictionaryToStringConverter : Avalonia.Data.Converters.IValueConver
         if (value is Dictionary<string, float> dict)
         {
             if (dict.Count == 0)
+            {
                 return "无";
-            
+            }
+
             return string.Join(", ", dict.Select(kvp => $"{kvp.Key}: {kvp.Value:P0}"));
         }
         return "无";
@@ -422,7 +424,7 @@ public class NoteRangeToStringConverter : Avalonia.Data.Converters.IValueConvert
                 // 尝试获取 Min 和 Max 属性
                 var minProp = type.GetProperty("Min");
                 var maxProp = type.GetProperty("Max");
-                
+
                 if (minProp != null && maxProp != null)
                 {
                     var min = minProp.GetValue(value);
@@ -430,7 +432,7 @@ public class NoteRangeToStringConverter : Avalonia.Data.Converters.IValueConvert
                     return $"{min} - {max}";
                 }
             }
-            
+
             // 尝试直接转换为字符串
             return value.ToString();
         }

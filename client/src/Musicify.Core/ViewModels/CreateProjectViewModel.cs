@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Musicify.Core.Models;
 using Musicify.Core.Models.Constants;
@@ -18,6 +17,16 @@ public class CreateProjectViewModel : ViewModelBase
 {
     private readonly IProjectService _projectService;
     private readonly INavigationService _navigationService;
+
+    /// <summary>
+    /// 项目创建完成事件
+    /// </summary>
+    public event EventHandler<ProjectConfig>? ProjectCreated;
+    
+    /// <summary>
+    /// 取消创建事件
+    /// </summary>
+    public event EventHandler? Canceled;
 
     private string _projectName = string.Empty;
     private string _projectPath = string.Empty;
@@ -42,6 +51,11 @@ public class CreateProjectViewModel : ViewModelBase
     private string _errorMessage = string.Empty;
     private Dictionary<string, string> _validationErrors = new();
 
+    /// <summary>
+    /// 初始化 CreateProjectViewModel 实例
+    /// </summary>
+    /// <param name="projectService">项目服务</param>
+    /// <param name="navigationService">导航服务</param>
     public CreateProjectViewModel(
         IProjectService projectService,
         INavigationService navigationService)
@@ -128,7 +142,7 @@ public class CreateProjectViewModel : ViewModelBase
     /// <summary>
     /// 歌曲规格
     /// </summary>
-    public SongSpec SongSpec
+    public SongSpec? SongSpec
     {
         get => _songSpec;
         set => SetProperty(ref _songSpec, value);
@@ -226,6 +240,26 @@ public class CreateProjectViewModel : ViewModelBase
         get => _validationErrors;
         set => SetProperty(ref _validationErrors, value);
     }
+    
+    /// <summary>
+    /// 索引器，用于安全访问验证错误（解决XAML绑定中的KeyNotFoundException）
+    /// </summary>
+    /// <param name="fieldName">字段名</param>
+    /// <returns>错误信息，如果没有则返回空字符串</returns>
+    public string this[string fieldName]
+    {
+        get => ValidationErrors.TryGetValue(fieldName, out var error) ? error : string.Empty;
+    }
+    
+    /// <summary>
+    /// 获取验证错误信息，安全访问字典
+    /// </summary>
+    /// <param name="fieldName">字段名</param>
+    /// <returns>错误信息，如果没有则返回空字符串</returns>
+    public string GetValidationError(string fieldName)
+    {
+        return this[fieldName];
+    }
 
     /// <summary>
     /// 项目摘要 (第4步显示)
@@ -233,7 +267,7 @@ public class CreateProjectViewModel : ViewModelBase
     public string ProjectSummary => $"""
         项目名称: {ProjectName}
         项目路径: {ProjectPath}
-        
+
         歌曲类型: {SongSpec?.SongType ?? "未指定"}
         时长: {SongSpec?.Duration ?? "未指定"}
         音乐风格: {SongSpec?.Style ?? "未指定"}
@@ -241,7 +275,7 @@ public class CreateProjectViewModel : ViewModelBase
         受众: {SongSpec?.Audience?.Age ?? "未指定"} / {SongSpec?.Audience?.Gender ?? "未指定"}
         目标平台: {(SongSpec?.TargetPlatform?.Count > 0 ? string.Join(", ", SongSpec.TargetPlatform) : "未指定")}
         音调: {(string.IsNullOrEmpty(SongSpec?.Tone) ? "未指定" : SongSpec.Tone)}
-        
+
         创作模式: {CreationModeDescription}
         {(string.IsNullOrEmpty(MidiFilePath) ? "" : $"参考旋律: {Path.GetFileName(MidiFilePath)}")}
         """;
@@ -406,7 +440,10 @@ public class CreateProjectViewModel : ViewModelBase
     /// </summary>
     public bool CanGoNext()
     {
-        if (CurrentStep >= TotalSteps) return false;
+        if (CurrentStep >= TotalSteps)
+        {
+            return false;
+        }
 
         return CurrentStep switch
         {
@@ -481,6 +518,12 @@ public class CreateProjectViewModel : ViewModelBase
         }
 
         ValidationErrors = errors;
+
+        // 项目名称改变时，重新验证路径
+        if (!string.IsNullOrWhiteSpace(ProjectPath))
+        {
+            ValidateProjectPath();
+        }
     }
 
     private void ValidateProjectPath()
@@ -491,9 +534,22 @@ public class CreateProjectViewModel : ViewModelBase
         {
             errors["ProjectPath"] = "项目路径不能为空";
         }
-        else if (!_projectService.ValidateProjectPath(ProjectPath))
+        else if (!Directory.Exists(ProjectPath))
         {
-            errors["ProjectPath"] = "项目路径已存在或无效";
+            errors["ProjectPath"] = "选择的路径不存在";
+        }
+        else if (!string.IsNullOrWhiteSpace(ProjectName))
+        {
+            // 检查最终的项目目录（父目录 + 项目名）
+            var finalProjectPath = Path.Combine(ProjectPath, ProjectName);
+            if (Directory.Exists(finalProjectPath))
+            {
+                errors["ProjectPath"] = "该路径下已存在同名项目";
+            }
+            else
+            {
+                errors.Remove("ProjectPath");
+            }
         }
         else
         {
@@ -541,10 +597,13 @@ public class CreateProjectViewModel : ViewModelBase
                 BuildSongSpec();
             }
 
+            // 构建最终的项目路径（父目录 + 项目名）
+            var finalProjectPath = Path.Combine(ProjectPath, ProjectName);
+
             // 创建项目
             var project = await _projectService.CreateProjectAsync(
                 ProjectName,
-                ProjectPath);
+                finalProjectPath);
 
             // 保存 SongSpec 到项目
             if (SongSpec != null && project != null)
@@ -554,8 +613,11 @@ public class CreateProjectViewModel : ViewModelBase
                 await _projectService.SaveProjectAsync(project);
             }
 
-            // 导航到主窗口
-            _navigationService.NavigateTo("MainWindow", project);
+            // 触发项目创建完成事件
+            if (project != null)
+            {
+                ProjectCreated?.Invoke(this, project);
+            }
         }
         catch (Exception ex)
         {
@@ -608,7 +670,7 @@ public class CreateProjectViewModel : ViewModelBase
 
     private void OnCancel()
     {
-        _navigationService.NavigateTo("WelcomeWindow", null);
+        Canceled?.Invoke(this, EventArgs.Empty);
     }
 
     private async void OnBrowseProjectPath()
@@ -645,7 +707,10 @@ public class CreateProjectViewModel : ViewModelBase
     /// </summary>
     public void TogglePlatform(string platform)
     {
-        if (string.IsNullOrEmpty(platform)) return;
+        if (string.IsNullOrEmpty(platform))
+        {
+            return;
+        }
 
         var platforms = new List<string>(TargetPlatforms);
         if (platforms.Contains(platform))

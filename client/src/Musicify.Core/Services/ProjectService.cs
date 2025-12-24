@@ -11,23 +11,24 @@ namespace Musicify.Core.Services;
 public class ProjectService : IProjectService
 {
     private const string ConfigFileName = "project-config.json";
+    private const string SpecFileName = "spec.json";
     private const string RecentProjectsFile = "recent-projects.json";
     private static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
-    
+
     private readonly IFileSystem _fileSystem;
     private readonly string _defaultBasePath;
     private readonly string _recentProjectsPath;
-    
+
     public ProjectService(IFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
-        
+
         // 默认项目基础路径: ~/Documents/musicify
         _defaultBasePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "musicify"
         );
-        
+
         // 最近项目列表路径: ~/.config/Musicify/recent-projects.json (macOS/Linux)
         // 或 %APPDATA%/Musicify/recent-projects.json (Windows)
         _recentProjectsPath = Path.Combine(
@@ -51,8 +52,7 @@ public class ProjectService : IProjectService
         }
 
         // 确定项目路径
-        var projectBasePath = basePath ?? _defaultBasePath;
-        var projectPath = Path.Combine(projectBasePath, name);
+        var projectPath = basePath != null ? basePath : Path.Combine(_defaultBasePath, name);
 
         // 检查项目是否已存在
         if (_fileSystem.DirectoryExists(projectPath))
@@ -108,14 +108,40 @@ public class ProjectService : IProjectService
         try
         {
             var json = await _fileSystem.ReadAllTextAsync(configPath);
+
             var config = JsonSerializer.Deserialize<ProjectConfig>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
+            // 手动设置项目路径，因为它被标记为[JsonIgnore]
+            if (config != null)
+            {
+                config = config with { ProjectPath = projectPath };
+                
+                // 尝试加载 spec.json 文件
+                var specPath = GetSpecFilePath(projectPath);
+                if (_fileSystem.FileExists(specPath))
+                {
+                    var specJson = await _fileSystem.ReadAllTextAsync(specPath);
+                    var spec = JsonSerializer.Deserialize<SongSpec>(specJson, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    if (spec != null)
+                    {
+                        config = config with { Spec = spec };
+                    }
+                }
+            }
+
             return config;
         }
         catch (JsonException)
+        {
+            throw;
+        }
+        catch (Exception)
         {
             throw;
         }
@@ -134,6 +160,18 @@ public class ProjectService : IProjectService
         });
 
         await _fileSystem.WriteAllTextAsync(configPath, json);
+        
+        // 单独保存 SongSpec 到 spec.json 文件
+        if (config.Spec != null)
+        {
+            var specPath = GetSpecFilePath(config.ProjectPath);
+            var specJson = JsonSerializer.Serialize(config.Spec, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            await _fileSystem.WriteAllTextAsync(specPath, specJson);
+        }
     }
 
     public async Task UpdateProjectStatusAsync(string projectPath, string status)
@@ -201,7 +239,7 @@ public class ProjectService : IProjectService
 
         // 读取现有最近项目列表
         var recentProjects = new List<RecentProjectItem>();
-        
+
         if (_fileSystem.FileExists(_recentProjectsPath))
         {
             try
@@ -211,7 +249,7 @@ public class ProjectService : IProjectService
                 {
                     PropertyNameCaseInsensitive = true
                 });
-                
+
                 if (data?.Projects != null)
                 {
                     recentProjects = data.Projects.ToList();
@@ -295,6 +333,16 @@ public class ProjectService : IProjectService
     public string GetConfigFilePath(string projectPath)
     {
         return Path.Combine(projectPath, ConfigFileName);
+    }
+    
+    /// <summary>
+    /// 获取项目规格文件路径
+    /// </summary>
+    /// <param name="projectPath">项目路径</param>
+    /// <returns>规格文件路径</returns>
+    public string GetSpecFilePath(string projectPath)
+    {
+        return Path.Combine(projectPath, SpecFileName);
     }
 }
 

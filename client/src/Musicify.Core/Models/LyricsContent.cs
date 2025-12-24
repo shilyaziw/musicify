@@ -14,26 +14,26 @@ public sealed record LyricsContent
     /// </summary>
     [JsonPropertyName("project_name")]
     public required string ProjectName { get; init; }
-    
+
     /// <summary>
     /// 创作模式
     /// 可选值: coach/express/hybrid
     /// </summary>
     [JsonPropertyName("mode")]
     public required string Mode { get; init; }
-    
+
     /// <summary>
     /// 歌词段落列表
     /// </summary>
     [JsonPropertyName("sections")]
     public required List<LyricsSection> Sections { get; init; }
-    
+
     /// <summary>
     /// 创建时间
     /// </summary>
     [JsonPropertyName("created_at")]
     public DateTime CreatedAt { get; init; }
-    
+
     /// <summary>
     /// 获取格式化的完整歌词文本
     /// </summary>
@@ -48,25 +48,27 @@ public sealed record LyricsContent
         }
         return sb.ToString().TrimEnd();
     }
-    
+
     /// <summary>
     /// 从文本格式解析歌词内容
     /// </summary>
     public static LyricsContent? FromText(string text, string projectName)
     {
         if (string.IsNullOrWhiteSpace(text))
+        {
             return null;
-        
+        }
+
         var sections = new List<LyricsSection>();
         var lines = text.Split('\n');
         string? currentSectionType = null;
         var currentContent = new StringBuilder();
         int order = 1;
-        
+
         foreach (var line in lines)
         {
             var trimmedLine = line.Trim();
-            
+
             // 检查是否是段落标记
             if (trimmedLine.StartsWith('[') && trimmedLine.EndsWith(']'))
             {
@@ -81,7 +83,7 @@ public sealed record LyricsContent
                     });
                     currentContent.Clear();
                 }
-                
+
                 // 提取段落类型
                 currentSectionType = trimmedLine.Substring(1, trimmedLine.Length - 2);
             }
@@ -92,13 +94,16 @@ public sealed record LyricsContent
                 {
                     currentSectionType = "Verse 1";
                 }
-                
+
                 if (currentContent.Length > 0)
+                {
                     currentContent.AppendLine();
+                }
+
                 currentContent.Append(trimmedLine);
             }
         }
-        
+
         // 保存最后一个段落
         if (currentSectionType != null && currentContent.Length > 0)
         {
@@ -109,10 +114,12 @@ public sealed record LyricsContent
                 Order = order
             });
         }
-        
+
         if (sections.Count == 0)
+        {
             return null;
-        
+        }
+
         return new LyricsContent
         {
             ProjectName = projectName,
@@ -133,13 +140,13 @@ public sealed record LyricsSection
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
-    
+
     /// <summary>
     /// 段落内容 (多行文本)
     /// </summary>
     [JsonPropertyName("content")]
     public required string Content { get; init; }
-    
+
     /// <summary>
     /// 段落顺序
     /// </summary>

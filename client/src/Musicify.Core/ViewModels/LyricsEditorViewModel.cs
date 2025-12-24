@@ -9,11 +9,16 @@ namespace Musicify.Core.ViewModels;
 /// <summary>
 /// 歌词编辑器 ViewModel
 /// </summary>
-public class LyricsEditorViewModel : ViewModelBase
+public partial class LyricsEditorViewModel : ViewModelBase
 {
     private readonly IProjectService _projectService;
     private readonly IFileSystem _fileSystem;
-    
+    private readonly IRhymeCheckService? _rhymeCheckService;
+
+    // 优化正则表达式，使用GeneratedRegexAttribute
+    [GeneratedRegex(@"\[([^\]]+)\]", RegexOptions.IgnoreCase)]
+    private static partial Regex SectionPattern();
+
     private ProjectConfig? _currentProject;
     private string _lyricsText = string.Empty;
     private int _wordCount;
@@ -23,7 +28,11 @@ public class LyricsEditorViewModel : ViewModelBase
     private bool _showPreview;
     private string? _errorMessage;
     private System.Timers.Timer? _autoSaveTimer;
-    
+
+    // 押韵分析结果
+    private RhymeAnalysisResult? _rhymeAnalysis;
+    private bool _isAnalyzingRhyme;
+
     // 撤销/重做历史
     private readonly Stack<string> _undoStack = new();
     private readonly Stack<string> _redoStack = new();
@@ -31,16 +40,21 @@ public class LyricsEditorViewModel : ViewModelBase
 
     public LyricsEditorViewModel(
         IProjectService projectService,
-        IFileSystem fileSystem)
+        IFileSystem fileSystem,
+        IRhymeCheckService? rhymeCheckService = null)
     {
         _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
         _fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        _rhymeCheckService = rhymeCheckService;
 
         // 初始化命令
         SaveLyricsCommand = new AsyncRelayCommand(SaveLyricsAsync, CanSave);
         FormatLyricsCommand = new RelayCommand(FormatLyrics);
         TogglePreviewCommand = new RelayCommand(TogglePreview);
         LoadLyricsCommand = new AsyncRelayCommand(LoadLyricsAsync);
+        UndoCommand = new RelayCommand(() => { /* TODO: 实现撤销功能 */ });
+        RedoCommand = new RelayCommand(() => { /* TODO: 实现重做功能 */ });
+        CheckRhymeCommand = new AsyncRelayCommand(CheckRhymeAsync, CanCheckRhyme);
 
         // 监听歌词文本变化
         PropertyChanged += (s, e) =>
@@ -49,6 +63,8 @@ public class LyricsEditorViewModel : ViewModelBase
             {
                 UpdateStatistics();
                 ScheduleAutoSave();
+                // 延迟押韵检查（避免频繁检查）
+                ScheduleRhymeCheck();
             }
         };
     }
@@ -167,6 +183,33 @@ public class LyricsEditorViewModel : ViewModelBase
     /// </summary>
     public ICommand RedoCommand { get; }
 
+    /// <summary>
+    /// 押韵检查命令
+    /// </summary>
+    public ICommand CheckRhymeCommand { get; }
+
+    #endregion
+
+    #region 押韵相关属性
+
+    /// <summary>
+    /// 押韵分析结果
+    /// </summary>
+    public RhymeAnalysisResult? RhymeAnalysis
+    {
+        get => _rhymeAnalysis;
+        private set => SetProperty(ref _rhymeAnalysis, value);
+    }
+
+    /// <summary>
+    /// 是否正在分析押韵
+    /// </summary>
+    public bool IsAnalyzingRhyme
+    {
+        get => _isAnalyzingRhyme;
+        private set => SetProperty(ref _isAnalyzingRhyme, value);
+    }
+
     #endregion
 
     #region 公共方法
@@ -199,17 +242,17 @@ public class LyricsEditorViewModel : ViewModelBase
         {
             ErrorMessage = null;
             var lyricsPath = Path.Combine(CurrentProject.ProjectPath, "lyrics.txt");
-            
+
             // 确保目录存在
             var directory = Path.GetDirectoryName(lyricsPath);
             if (!string.IsNullOrEmpty(directory) && !_fileSystem.DirectoryExists(directory))
             {
                 _fileSystem.CreateDirectory(directory);
             }
-            
+
             await _fileSystem.WriteAllTextAsync(lyricsPath, LyricsText);
             IsModified = false;
-            
+
             // 停止自动保存定时器
             _autoSaveTimer?.Stop();
         }
@@ -234,15 +277,14 @@ public class LyricsEditorViewModel : ViewModelBase
     {
         // 自动格式化段落标记
         // 确保段落标记格式正确: [Verse 1] 而不是 [verse 1] 或 [Verse1]
-        var sectionPattern = new Regex(@"\[([^\]]+)\]", RegexOptions.IgnoreCase);
-        var formatted = sectionPattern.Replace(LyricsText, match =>
+        var formatted = SectionPattern().Replace(LyricsText, match =>
         {
             var sectionName = match.Groups[1].Value.Trim();
-            
+
             // 标准化段落名称
             sectionName = sectionName switch
             {
-                var s when s.StartsWith("verse", StringComparison.OrdinalIgnoreCase) => 
+                var s when s.StartsWith("verse", StringComparison.OrdinalIgnoreCase) =>
                     "Verse " + (s.Length > 5 ? s.Substring(5).Trim() : "1"),
                 var s when s.Equals("chorus", StringComparison.OrdinalIgnoreCase) => "Chorus",
                 var s when s.Equals("bridge", StringComparison.OrdinalIgnoreCase) => "Bridge",
@@ -251,10 +293,10 @@ public class LyricsEditorViewModel : ViewModelBase
                 var s when s.StartsWith("pre-chorus", StringComparison.OrdinalIgnoreCase) => "Pre-Chorus",
                 _ => sectionName
             };
-            
+
             return $"[{sectionName}]";
         });
-        
+
         LyricsText = formatted;
     }
 
@@ -280,7 +322,7 @@ public class LyricsEditorViewModel : ViewModelBase
         {
             ErrorMessage = null;
             var lyricsPath = Path.Combine(CurrentProject.ProjectPath, "lyrics.txt");
-            
+
             if (_fileSystem.FileExists(lyricsPath))
             {
                 LyricsText = await _fileSystem.ReadAllTextAsync(lyricsPath);
@@ -320,14 +362,13 @@ public class LyricsEditorViewModel : ViewModelBase
         LineCount = lines.Length;
 
         // 统计段落标记
-        var sectionPattern = new Regex(@"\[.*?\]", RegexOptions.IgnoreCase);
-        var sections = sectionPattern.Matches(LyricsText);
+        var sections = SectionPattern().Matches(LyricsText);
         SectionCount = sections.Count;
 
         // 统计字数 (排除标记和空行)
         var cleanText = LyricsText;
-        cleanText = sectionPattern.Replace(cleanText, "");
-        var nonEmptyLines = lines.Where(l => !string.IsNullOrWhiteSpace(l) && !sectionPattern.IsMatch(l));
+        cleanText = SectionPattern().Replace(cleanText, "");
+        var nonEmptyLines = lines.Where(l => !string.IsNullOrWhiteSpace(l) && !SectionPattern().IsMatch(l));
         cleanText = string.Join("", nonEmptyLines);
         WordCount = cleanText.Length;
     }
@@ -339,7 +380,7 @@ public class LyricsEditorViewModel : ViewModelBase
     {
         _autoSaveTimer?.Stop();
         _autoSaveTimer?.Dispose();
-        
+
         _autoSaveTimer = new System.Timers.Timer(3000); // 3 秒
         _autoSaveTimer.Elapsed += async (s, e) =>
         {
@@ -350,6 +391,68 @@ public class LyricsEditorViewModel : ViewModelBase
         };
         _autoSaveTimer.AutoReset = false;
         _autoSaveTimer.Start();
+    }
+
+    /// <summary>
+    /// 安排押韵检查（延迟执行，避免频繁检查）
+    /// </summary>
+    private System.Timers.Timer? _rhymeCheckTimer;
+
+    private void ScheduleRhymeCheck()
+    {
+        if (_rhymeCheckService == null)
+        {
+            return;
+        }
+
+        _rhymeCheckTimer?.Stop();
+        _rhymeCheckTimer?.Dispose();
+
+        _rhymeCheckTimer = new System.Timers.Timer(2000); // 2 秒延迟
+        _rhymeCheckTimer.Elapsed += async (s, e) =>
+        {
+            _rhymeCheckTimer?.Stop();
+            await CheckRhymeAsync();
+        };
+        _rhymeCheckTimer.AutoReset = false;
+        _rhymeCheckTimer.Start();
+    }
+
+    /// <summary>
+    /// 检查押韵
+    /// </summary>
+    private async Task CheckRhymeAsync()
+    {
+        if (_rhymeCheckService == null || string.IsNullOrWhiteSpace(LyricsText))
+        {
+            RhymeAnalysis = null;
+            return;
+        }
+
+        try
+        {
+            IsAnalyzingRhyme = true;
+            ErrorMessage = null;
+
+            var result = await _rhymeCheckService.AnalyzeAsync(LyricsText);
+            RhymeAnalysis = result;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"押韵检查失败: {ex.Message}";
+        }
+        finally
+        {
+            IsAnalyzingRhyme = false;
+        }
+    }
+
+    /// <summary>
+    /// 是否可以检查押韵
+    /// </summary>
+    private bool CanCheckRhyme()
+    {
+        return _rhymeCheckService != null && !string.IsNullOrWhiteSpace(LyricsText) && !IsAnalyzingRhyme;
     }
 
     #endregion

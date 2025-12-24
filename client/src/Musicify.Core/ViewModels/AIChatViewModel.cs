@@ -15,7 +15,15 @@ public class AIChatViewModel : ViewModelBase
     private readonly IAIService _aiService;
     private readonly IProjectService _projectService;
     private readonly IFileSystem _fileSystem;
-    
+
+    // 缓存JsonSerializerOptions实例，避免重复创建
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private ProjectConfig? _currentProject;
     private ObservableCollection<ChatMessage> _messages = new();
     private string _inputText = string.Empty;
@@ -25,7 +33,6 @@ public class AIChatViewModel : ViewModelBase
     private string? _errorMessage;
     private ChatMessage? _currentStreamingMessage;
     private int _currentStreamingIndex = -1;
-    private System.Threading.Timer? _scrollTimer;
     private System.Action? _onContentUpdated;
 
     public AIChatViewModel(
@@ -41,7 +48,7 @@ public class AIChatViewModel : ViewModelBase
         SendMessageCommand = new AsyncRelayCommand(SendMessageAsync, CanSendMessage);
         ClearHistoryCommand = new RelayCommand(ClearHistory);
         StopGenerationCommand = new RelayCommand(StopGeneration, () => IsGenerating);
-        
+
         // 监听属性变化
         PropertyChanged += (s, e) =>
         {
@@ -49,7 +56,7 @@ public class AIChatViewModel : ViewModelBase
             {
                 (SendMessageCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             }
-            
+
             if (e.PropertyName == nameof(IsGenerating))
             {
                 (StopGenerationCommand as RelayCommand)?.RaiseCanExecuteChanged();
@@ -177,7 +184,9 @@ public class AIChatViewModel : ViewModelBase
     private async Task SendMessageAsync()
     {
         if (string.IsNullOrWhiteSpace(InputText) || CurrentProject == null)
+        {
             return;
+        }
 
         try
         {
@@ -193,7 +202,7 @@ public class AIChatViewModel : ViewModelBase
                 IsStreaming = false
             };
             Messages.Add(userMessage);
-            
+
             // 保存消息历史（用户消息）
             await SaveChatHistoryAsync();
 
@@ -219,7 +228,7 @@ public class AIChatViewModel : ViewModelBase
                 ErrorMessage = "项目规格未配置,请先完成项目设置";
                 return;
             }
-            
+
             var request = new AIRequest
             {
                 Project = CurrentProject,
@@ -232,14 +241,14 @@ public class AIChatViewModel : ViewModelBase
             var accumulatedContent = new System.Text.StringBuilder();
             var lastUpdateTime = DateTime.Now;
             var updateInterval = TimeSpan.FromMilliseconds(50); // 每 50ms 更新一次 UI
-            
+
             var response = await _aiService.GenerateLyricsStreamAsync(
                 request,
                 chunk =>
                 {
                     // 累积内容
                     accumulatedContent.Append(chunk);
-                    
+
                     // 节流更新：避免过于频繁的 UI 更新
                     var now = DateTime.Now;
                     if (now - lastUpdateTime >= updateInterval)
@@ -252,17 +261,17 @@ public class AIChatViewModel : ViewModelBase
                             {
                                 Content = accumulatedContent.ToString()
                             };
-                            
+
                             // 触发滚动回调（节流）
                             _onContentUpdated?.Invoke();
                         }
-                        
+
                         lastUpdateTime = now;
                     }
                 },
                 default
             );
-            
+
             // 确保最后一次更新
             if (_currentStreamingIndex >= 0 && _currentStreamingIndex < Messages.Count)
             {
@@ -286,10 +295,10 @@ public class AIChatViewModel : ViewModelBase
 
             // 更新 Token 统计
             TokenUsage = _aiService.GetTokenUsage();
-            
+
             // 触发最终滚动
             _onContentUpdated?.Invoke();
-            
+
             // 保存消息历史（AI 消息完成）
             await SaveChatHistoryAsync();
 
@@ -299,13 +308,13 @@ public class AIChatViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorMessage = $"生成失败: {ex.Message}";
-            
+
             // 移除失败的 AI 消息
             if (_currentStreamingIndex >= 0 && _currentStreamingIndex < Messages.Count)
             {
                 Messages.RemoveAt(_currentStreamingIndex);
             }
-            
+
             _currentStreamingMessage = null;
             _currentStreamingIndex = -1;
         }
@@ -352,7 +361,9 @@ public class AIChatViewModel : ViewModelBase
     private string GetChatHistoryFilePath()
     {
         if (CurrentProject == null || string.IsNullOrWhiteSpace(CurrentProject.ProjectPath))
+        {
             throw new InvalidOperationException("项目未加载");
+        }
 
         return Path.Combine(CurrentProject.ProjectPath, ".musicify", "chat_history.json");
     }
@@ -363,12 +374,14 @@ public class AIChatViewModel : ViewModelBase
     private async Task LoadChatHistoryAsync()
     {
         if (CurrentProject == null || string.IsNullOrWhiteSpace(CurrentProject.ProjectPath))
+        {
             return;
+        }
 
         try
         {
             var historyPath = GetChatHistoryFilePath();
-            
+
             if (!_fileSystem.FileExists(historyPath))
             {
                 Messages.Clear();
@@ -410,13 +423,15 @@ public class AIChatViewModel : ViewModelBase
     private async Task SaveChatHistoryAsync()
     {
         if (CurrentProject == null || string.IsNullOrWhiteSpace(CurrentProject.ProjectPath))
+        {
             return;
+        }
 
         try
         {
             var historyPath = GetChatHistoryFilePath();
             var directory = Path.GetDirectoryName(historyPath);
-            
+
             if (!string.IsNullOrEmpty(directory) && !_fileSystem.DirectoryExists(directory))
             {
                 _fileSystem.CreateDirectory(directory);
@@ -443,12 +458,14 @@ public class AIChatViewModel : ViewModelBase
     private async Task DeleteChatHistoryAsync()
     {
         if (CurrentProject == null || string.IsNullOrWhiteSpace(CurrentProject.ProjectPath))
+        {
             return;
+        }
 
         try
         {
             var historyPath = GetChatHistoryFilePath();
-            
+
             if (_fileSystem.FileExists(historyPath))
             {
                 // 注意：IFileSystem 可能没有 DeleteFile 方法，需要检查

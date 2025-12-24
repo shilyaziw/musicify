@@ -62,7 +62,7 @@
                             Height="60">
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <Path Data="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
-                                  Fill="White" Width="24" Height="24" Stretch="Uniform" />
+                                  Width="24" Height="24" Stretch="Uniform" />
                             <TextBlock Text="创建新项目" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>

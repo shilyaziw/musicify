@@ -11,12 +11,12 @@ public interface IPromptTemplateService
     /// 获取系统提示词
     /// </summary>
     string GetSystemPrompt(string mode);
-    
+
     /// <summary>
     /// 获取用户提示词
     /// </summary>
     string GetUserPrompt(AIRequest request);
-    
+
     /// <summary>
     /// 格式化提示词 (替换变量)
     /// </summary>

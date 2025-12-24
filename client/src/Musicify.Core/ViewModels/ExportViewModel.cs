@@ -14,7 +14,7 @@ public class ExportViewModel : ViewModelBase
     private readonly IExportService _exportService;
     private readonly IFileSystem _fileSystem;
     private readonly IFileDialogService? _fileDialogService;
-    
+
     private ProjectConfig? _currentProject;
     private LyricsContent? _lyricsContent;
     private string _selectedFormat = "txt";
@@ -35,7 +35,7 @@ public class ExportViewModel : ViewModelBase
         // 初始化命令
         SelectExportPathCommand = new RelayCommand(SelectExportPath);
         ExportCommand = new AsyncRelayCommand(ExportAsync, CanExport);
-        
+
         // 初始化格式选项
         ExportFormats = new List<ExportFormat>
         {
@@ -222,7 +222,7 @@ public class ExportViewModel : ViewModelBase
         };
 
         var defaultFileName = $"{CurrentProject.Name}_歌词.{SelectedFormat}";
-        
+
         // 如果有文件对话框服务，使用它
         if (_fileDialogService != null)
         {
@@ -231,7 +231,7 @@ public class ExportViewModel : ViewModelBase
                 defaultFileName: defaultFileName,
                 filters: filter,
                 initialDirectory: CurrentProject.ProjectPath);
-            
+
             if (!string.IsNullOrWhiteSpace(selectedPath))
             {
                 ExportPath = selectedPath;

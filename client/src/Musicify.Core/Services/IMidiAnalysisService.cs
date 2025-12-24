@@ -14,16 +14,16 @@ public interface IMidiAnalysisService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>分析结果</returns>
     Task<MidiAnalysisResult> AnalyzeAsync(
-        string midiFilePath, 
+        string midiFilePath,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// 验证 MIDI 文件是否有效
     /// </summary>
     /// <param name="midiFilePath">MIDI 文件路径</param>
     /// <returns>文件是否有效</returns>
     bool ValidateMidiFile(string midiFilePath);
-    
+
     /// <summary>
     /// 获取 MIDI 文件基本信息
     /// </summary>

@@ -19,14 +19,14 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 人声音轨名称关键词
     /// </summary>
-    private static readonly string[] VocalKeywords = 
+    private static readonly string[] VocalKeywords =
     {
         "vocal", "voice", "sing", "melody", "lead",
         "人声", "主旋律", "主唱", "vocalist"
     };
 
     public async Task<MidiAnalysisResult> AnalyzeAsync(
-        string midiFilePath, 
+        string midiFilePath,
         CancellationToken cancellationToken = default)
     {
         if (!ValidateMidiFile(midiFilePath))
@@ -74,10 +74,14 @@ public class MidiAnalysisService : IMidiAnalysisService
     public bool ValidateMidiFile(string midiFilePath)
     {
         if (string.IsNullOrWhiteSpace(midiFilePath))
+        {
             return false;
+        }
 
         if (!File.Exists(midiFilePath))
+        {
             return false;
+        }
 
         try
         {
@@ -102,13 +106,13 @@ public class MidiAnalysisService : IMidiAnalysisService
         {
             var midiFile = MidiFile.Read(midiFilePath);
             var tempoMap = midiFile.GetTempoMap();
-            
+
             // 获取最后一个事件的时间
             var lastEvent = midiFile.GetTimedEvents().LastOrDefault();
-            var totalTime = lastEvent != null 
-                ? lastEvent.TimeAs<MetricTimeSpan>(tempoMap) 
+            var totalTime = lastEvent != null
+                ? lastEvent.TimeAs<MetricTimeSpan>(tempoMap)
                 : new MetricTimeSpan(0);
-            
+
             // 获取速度 (BPM)
             var tempoChange = tempoMap.GetTempoAtTime(new MidiTimeSpan(0));
             var tempo = tempoChange.BeatsPerMinute;
@@ -120,8 +124,8 @@ public class MidiAnalysisService : IMidiAnalysisService
                 FilePath: midiFilePath,
                 TrackCount: midiFile.Chunks.Count,
                 Duration: duration,
-                TicksPerQuarterNote: midiFile.TimeDivision is TicksPerQuarterNoteTimeDivision tpqn 
-                    ? tpqn.TicksPerQuarterNote 
+                TicksPerQuarterNote: midiFile.TimeDivision is TicksPerQuarterNoteTimeDivision tpqn
+                    ? tpqn.TicksPerQuarterNote
                     : 480,
                 Tempo: (int)tempo
             );
@@ -131,18 +135,22 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 识别人声音轨
     /// </summary>
-    private VocalTrackCandidate? IdentifyVocalTrack(MidiFile midiFile)
+    private static VocalTrackCandidate? IdentifyVocalTrack(MidiFile midiFile)
     {
         var candidates = new List<VocalTrackCandidate>();
 
         for (int i = 0; i < midiFile.Chunks.Count; i++)
         {
             if (midiFile.Chunks[i] is not TrackChunk trackChunk)
+            {
                 continue;
+            }
 
             var notes = ExtractNotes(midiFile, i);
             if (notes.Count == 0)
+            {
                 continue;
+            }
 
             var score = CalculateVocalScore(trackChunk, notes);
             var trackName = GetTrackName(trackChunk, i);
@@ -163,7 +171,7 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 计算人声音轨评分
     /// </summary>
-    private float CalculateVocalScore(TrackChunk track, List<Note> notes)
+    private static float CalculateVocalScore(TrackChunk track, List<Note> notes)
     {
         float score = 0f;
         var trackName = GetTrackName(track, -1).ToLowerInvariant();
@@ -216,13 +224,17 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 提取音轨中的音符
     /// </summary>
-    private List<Note> ExtractNotes(MidiFile midiFile, int trackIndex)
+    private static List<Note> ExtractNotes(MidiFile midiFile, int trackIndex)
     {
         if (trackIndex < 0 || trackIndex >= midiFile.Chunks.Count)
+        {
             return new List<Note>();
+        }
 
         if (midiFile.Chunks[trackIndex] is not TrackChunk trackChunk)
+        {
             return new List<Note>();
+        }
 
         return trackChunk.GetNotes().ToList();
     }
@@ -230,10 +242,12 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 计算音符范围
     /// </summary>
-    private (int Min, int Max) CalculateNoteRange(List<Note> notes)
+    private static (int Min, int Max) CalculateNoteRange(List<Note> notes)
     {
         if (notes.Count == 0)
+        {
             return (0, 0);
+        }
 
         var noteNumbers = notes.Select(n => (int)n.NoteNumber).ToList();
         return (noteNumbers.Min(), noteNumbers.Max());
@@ -242,8 +256,8 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 分析节奏型分布
     /// </summary>
-    private Dictionary<string, float> AnalyzeRhythmPatterns(
-        List<Note> notes, 
+    private static Dictionary<string, float> AnalyzeRhythmPatterns(
+        List<Note> notes,
         MidiFile midiFile)
     {
         var patterns = new Dictionary<string, float>
@@ -257,7 +271,9 @@ public class MidiAnalysisService : IMidiAnalysisService
         };
 
         if (notes.Count == 0)
+        {
             return patterns;
+        }
 
         var tempoMap = midiFile.GetTempoMap();
         var totalDuration = 0.0;
@@ -267,7 +283,7 @@ public class MidiAnalysisService : IMidiAnalysisService
             var length = note.LengthAs<MusicalTimeSpan>(tempoMap);
             var ticks = note.Length;
             var pattern = ClassifyRhythmPattern(ticks, midiFile.TimeDivision);
-            
+
             if (patterns.ContainsKey(pattern))
             {
                 patterns[pattern] += (float)ticks;
@@ -290,10 +306,10 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 分类节奏型
     /// </summary>
-    private string ClassifyRhythmPattern(long ticks, TimeDivision timeDivision)
+    private static string ClassifyRhythmPattern(long ticks, TimeDivision timeDivision)
     {
-        var ticksPerQuarter = timeDivision is TicksPerQuarterNoteTimeDivision tpqn 
-            ? tpqn.TicksPerQuarterNote 
+        var ticksPerQuarter = timeDivision is TicksPerQuarterNoteTimeDivision tpqn
+            ? tpqn.TicksPerQuarterNote
             : 480;
 
         var quarterRatio = (double)ticks / ticksPerQuarter;
@@ -312,7 +328,7 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 分析音程分布
     /// </summary>
-    private Dictionary<string, float> AnalyzeIntervalDistribution(List<Note> notes)
+    private static Dictionary<string, float> AnalyzeIntervalDistribution(List<Note> notes)
     {
         var distribution = new Dictionary<string, float>
         {
@@ -323,20 +339,24 @@ public class MidiAnalysisService : IMidiAnalysisService
         };
 
         if (notes.Count < 2)
+        {
             return distribution;
+        }
 
         var intervals = new List<int>();
         var sortedNotes = notes.OrderBy(n => n.Time).ToList();
 
         for (int i = 1; i < sortedNotes.Count; i++)
         {
-            var interval = Math.Abs((int)sortedNotes[i].NoteNumber - 
+            var interval = Math.Abs((int)sortedNotes[i].NoteNumber -
                                    (int)sortedNotes[i - 1].NoteNumber);
             intervals.Add(interval);
         }
 
         if (intervals.Count == 0)
+        {
             return distribution;
+        }
 
         foreach (var interval in intervals)
         {
@@ -363,7 +383,7 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 检测调式
     /// </summary>
-    private ModeAnalysis DetectMode(List<Note> notes)
+    private static ModeAnalysis DetectMode(List<Note> notes)
     {
         if (notes.Count == 0)
         {
@@ -400,8 +420,8 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 分析音阶
     /// </summary>
-    private List<string> AnalyzeScale(
-        Dictionary<int, int> pitchClasses, 
+    private static List<string> AnalyzeScale(
+        Dictionary<int, int> pitchClasses,
         int tonic)
     {
         var scaleNotes = new List<string>();
@@ -409,33 +429,33 @@ public class MidiAnalysisService : IMidiAnalysisService
 
         // 大调音阶模式: 0, 2, 4, 5, 7, 9, 11
         var majorScale = new[] { 0, 2, 4, 5, 7, 9, 11 };
-        var majorMatches = majorScale.Count(step => 
+        var majorMatches = majorScale.Count(step =>
             pitchClasses.ContainsKey((tonic + step) % 12));
 
         // 小调音阶模式: 0, 2, 3, 5, 7, 8, 10
         var minorScale = new[] { 0, 2, 3, 5, 7, 8, 10 };
-        var minorMatches = minorScale.Count(step => 
+        var minorMatches = minorScale.Count(step =>
             pitchClasses.ContainsKey((tonic + step) % 12));
 
         // 五声音阶模式: 0, 2, 4, 7, 9
         var pentatonicScale = new[] { 0, 2, 4, 7, 9 };
-        var pentatonicMatches = pentatonicScale.Count(step => 
+        var pentatonicMatches = pentatonicScale.Count(step =>
             pitchClasses.ContainsKey((tonic + step) % 12));
 
         // 选择匹配度最高的音阶
         if (majorMatches >= 5)
         {
-            scaleNotes = majorScale.Select(step => 
+            scaleNotes = majorScale.Select(step =>
                 noteNames[(tonic + step) % 12]).ToList();
         }
         else if (minorMatches >= 5)
         {
-            scaleNotes = minorScale.Select(step => 
+            scaleNotes = minorScale.Select(step =>
                 noteNames[(tonic + step) % 12]).ToList();
         }
         else if (pentatonicMatches >= 4)
         {
-            scaleNotes = pentatonicScale.Select(step => 
+            scaleNotes = pentatonicScale.Select(step =>
                 noteNames[(tonic + step) % 12]).ToList();
         }
         else
@@ -453,7 +473,7 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 识别调式名称
     /// </summary>
-    private string IdentifyMode(List<string> scaleNotes, int tonic)
+    private static string IdentifyMode(List<string> scaleNotes, int tonic)
     {
         var noteNames = new[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         var tonicName = noteNames[tonic];
@@ -462,22 +482,26 @@ public class MidiAnalysisService : IMidiAnalysisService
         {
             // 检查是否为大调
             var majorPattern = new[] { 0, 2, 4, 5, 7, 9, 11 };
-            var isMajor = majorPattern.All(step => 
+            var isMajor = majorPattern.All(step =>
                 scaleNotes.Contains(noteNames[(tonic + step) % 12]));
-            
+
             if (isMajor)
+            {
                 return $"{tonicName} Major";
+            }
         }
 
         if (scaleNotes.Count >= 5)
         {
             // 检查是否为小调
             var minorPattern = new[] { 0, 2, 3, 5, 7, 8, 10 };
-            var isMinor = minorPattern.Take(scaleNotes.Count).All(step => 
+            var isMinor = minorPattern.Take(scaleNotes.Count).All(step =>
                 scaleNotes.Contains(noteNames[(tonic + step) % 12]));
-            
+
             if (isMinor)
+            {
                 return $"{tonicName} Minor";
+            }
         }
 
         if (scaleNotes.Count == 5)
@@ -492,12 +516,14 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 计算调式检测置信度
     /// </summary>
-    private float CalculateModeConfidence(
-        Dictionary<int, int> pitchClasses, 
+    private static float CalculateModeConfidence(
+        Dictionary<int, int> pitchClasses,
         List<string> scaleNotes)
     {
         if (scaleNotes.Count == 0 || pitchClasses.Count == 0)
+        {
             return 0f;
+        }
 
         // 计算音阶音符在总音符中的占比
         var totalNotes = pitchClasses.Values.Sum();
@@ -511,7 +537,7 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 获取音级名称
     /// </summary>
-    private string GetNoteName(int pitchClass)
+    private static string GetNoteName(int pitchClass)
     {
         var noteNames = new[] { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
         return noteNames[pitchClass % 12];
@@ -520,15 +546,17 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 计算音域重叠度
     /// </summary>
-    private float CalculateRangeOverlap(
-        (int Min, int Max) range1, 
+    private static float CalculateRangeOverlap(
+        (int Min, int Max) range1,
         (int Min, int Max) range2)
     {
         var overlapMin = Math.Max(range1.Min, range2.Min);
         var overlapMax = Math.Min(range1.Max, range2.Max);
 
         if (overlapMin > overlapMax)
+        {
             return 0f;
+        }
 
         var overlap = overlapMax - overlapMin + 1;
         var range1Size = range1.Max - range1.Min + 1;
@@ -539,16 +567,20 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 计算音符密度
     /// </summary>
-    private float CalculateNoteDensity(List<Note> notes)
+    private static float CalculateNoteDensity(List<Note> notes)
     {
         if (notes.Count == 0)
+        {
             return 0f;
+        }
 
         var sortedNotes = notes.OrderBy(n => n.Time).ToList();
         var totalTime = sortedNotes.Last().Time + sortedNotes.Last().Length - sortedNotes.First().Time;
-        
+
         if (totalTime == 0)
+        {
             return 0f;
+        }
 
         return (float)notes.Count / totalTime;
     }
@@ -556,17 +588,19 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 计算音程变化丰富度
     /// </summary>
-    private float CalculateIntervalVariety(List<Note> notes)
+    private static float CalculateIntervalVariety(List<Note> notes)
     {
         if (notes.Count < 2)
+        {
             return 0f;
+        }
 
         var intervals = new HashSet<int>();
         var sortedNotes = notes.OrderBy(n => n.Time).ToList();
 
         for (int i = 1; i < sortedNotes.Count; i++)
         {
-            var interval = Math.Abs((int)sortedNotes[i].NoteNumber - 
+            var interval = Math.Abs((int)sortedNotes[i].NoteNumber -
                                    (int)sortedNotes[i - 1].NoteNumber);
             intervals.Add(interval);
         }
@@ -577,7 +611,7 @@ public class MidiAnalysisService : IMidiAnalysisService
     /// <summary>
     /// 获取音轨名称
     /// </summary>
-    private string GetTrackName(TrackChunk track, int index)
+    private static string GetTrackName(TrackChunk track, int index)
     {
         // 查找 SequenceTrackNameEvent
         var nameEvent = track.Events

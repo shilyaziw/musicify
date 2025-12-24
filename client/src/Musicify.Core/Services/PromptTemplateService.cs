@@ -24,7 +24,7 @@ public class PromptTemplateService : IPromptTemplateService
             - 注重韵律和节奏感
             - 符合目标受众和平台要求
             """,
-            
+
         ["express"] = """
             你是一位高效的歌词创作专家,擅长快速创作高质量歌词。
             
@@ -40,7 +40,7 @@ public class PromptTemplateService : IPromptTemplateService
             - 符合商业音乐标准
             - 适配目标发布平台
             """,
-            
+
         ["hybrid"] = """
             你是一位灵活的歌词创作助手,结合引导和执行能力。
             
@@ -60,8 +60,8 @@ public class PromptTemplateService : IPromptTemplateService
 
     public string GetSystemPrompt(string mode)
     {
-        return _systemPrompts.TryGetValue(mode, out var prompt) 
-            ? prompt 
+        return _systemPrompts.TryGetValue(mode, out var prompt)
+            ? prompt
             : _systemPrompts["express"];
     }
 
@@ -82,8 +82,8 @@ public class PromptTemplateService : IPromptTemplateService
             ["DURATION"] = request.Spec.Duration?.ToString() ?? "未指定",
             ["STYLE"] = request.Spec.Style ?? "未指定",
             ["LANGUAGE"] = request.Spec.Language,
-            ["TARGET_AUDIENCE"] = request.Spec.Audience != null 
-                ? $"{request.Spec.Audience.Age}, {request.Spec.Audience.Gender}" 
+            ["TARGET_AUDIENCE"] = request.Spec.Audience != null
+                ? $"{request.Spec.Audience.Age}, {request.Spec.Audience.Gender}"
                 : "大众听众",
             ["TARGET_PLATFORM"] = string.Join(", ", request.Spec.TargetPlatform),
             ["USER_INPUT"] = request.UserInput ?? "",
@@ -101,7 +101,7 @@ public class PromptTemplateService : IPromptTemplateService
         return result;
     }
 
-    private string GetExpressPrompt()
+    private static string GetExpressPrompt()
     {
         return """
             # 歌词创作任务
@@ -138,7 +138,7 @@ public class PromptTemplateService : IPromptTemplateService
             """;
     }
 
-    private string GetCoachPrompt()
+    private static string GetCoachPrompt()
     {
         return """
             # 歌词创作引导任务
@@ -162,7 +162,7 @@ public class PromptTemplateService : IPromptTemplateService
             """;
     }
 
-    private string GetHybridPrompt()
+    private static string GetHybridPrompt()
     {
         return """
             # 歌词快速创作任务
@@ -187,10 +187,12 @@ public class PromptTemplateService : IPromptTemplateService
             """;
     }
 
-    private string FormatMelodyInfo(MidiAnalysisResult? analysis)
+    private static string FormatMelodyInfo(MidiAnalysisResult? analysis)
     {
         if (analysis == null)
+        {
             return "无旋律参考";
+        }
 
         return $"""
             - 音域: {analysis.NoteRange.Min} - {analysis.NoteRange.Max}

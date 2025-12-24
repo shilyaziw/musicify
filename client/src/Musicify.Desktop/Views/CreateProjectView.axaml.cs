@@ -1,7 +1,7 @@
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Musicify.Core.ViewModels;
-using System.Threading.Tasks;
 
 namespace Musicify.Desktop.Views;
 
@@ -26,7 +26,7 @@ public partial class CreateProjectView : UserControl
             // 设置文件浏览回调
             viewModel.OnBrowsePathRequested = BrowseForPathAsync;
             viewModel.OnBrowseMidiRequested = BrowseForMidiAsync;
-            
+
             // 监听平台列表变化，更新 CheckBox 状态
             viewModel.PropertyChanged += (s, args) =>
             {
@@ -42,7 +42,10 @@ public partial class CreateProjectView : UserControl
     {
         // 查找所有平台 CheckBox 并更新状态
         var itemsControl = this.FindControl<ItemsControl>("PlatformsItemsControl");
-        if (itemsControl == null) return;
+        if (itemsControl == null)
+        {
+            return;
+        }
 
         // 这个方法会在 ItemsControl 加载后调用
         // 实际更新在 OnPlatformCheckBoxClick 中处理
@@ -51,33 +54,46 @@ public partial class CreateProjectView : UserControl
     private async Task<string?> BrowseForPathAsync()
     {
         var window = TopLevel.GetTopLevel(this) as Window;
-        if (window == null) return null;
-
-        var dialog = new OpenFolderDialog
+        if (window?.StorageProvider == null)
         {
-            Title = "选择项目保存位置"
-        };
+            return null;
+        }
 
-        return await dialog.ShowAsync(window);
+        var result = await window.StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
+        {
+            Title = "选择项目保存位置",
+            AllowMultiple = false
+        });
+
+        return result.FirstOrDefault()?.Path.LocalPath;
     }
 
     private async Task<string?> BrowseForMidiAsync()
     {
         var window = TopLevel.GetTopLevel(this) as Window;
-        if (window == null) return null;
+        if (window?.StorageProvider == null)
+        {
+            return null;
+        }
 
-        var dialog = new OpenFileDialog
+        var result = await window.StorageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
         {
             Title = "选择 MIDI 文件",
-            Filters = new List<FileDialogFilter>
+            AllowMultiple = false,
+            FileTypeFilter = new[]
             {
-                new() { Name = "MIDI 文件", Extensions = new List<string> { "mid", "midi" } },
-                new() { Name = "所有文件", Extensions = new List<string> { "*" } }
+                new Avalonia.Platform.Storage.FilePickerFileType("MIDI 文件")
+                {
+                    Patterns = new[] { "*.mid", "*.midi" }
+                },
+                new Avalonia.Platform.Storage.FilePickerFileType("所有文件")
+                {
+                    Patterns = new[] { "*.*" }
+                }
             }
-        };
+        });
 
-        var result = await dialog.ShowAsync(window);
-        return result?.FirstOrDefault();
+        return result.FirstOrDefault()?.Path.LocalPath;
     }
 
     private void OnPlatformCheckBoxClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

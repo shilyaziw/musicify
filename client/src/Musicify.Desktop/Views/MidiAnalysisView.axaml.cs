@@ -12,7 +12,7 @@ public partial class MidiAnalysisView : UserControl
     public MidiAnalysisView()
     {
         InitializeComponent();
-        
+
         // 从 DI 容器获取 ViewModel
         var app = Application.Current as App;
         if (app?.Services != null)

@@ -30,7 +30,7 @@ public class HttpAIService : IAIService
         _promptService = promptService ?? throw new ArgumentNullException(nameof(promptService));
 
         _provider = _configuration["AI:Provider"] ?? "OpenAI";
-        _apiKey = _configuration["AI:ApiKey"] 
+        _apiKey = _configuration["AI:ApiKey"]
             ?? Environment.GetEnvironmentVariable("AI_API_KEY")
             ?? throw new InvalidOperationException("未配置 AI API Key");
 
@@ -46,7 +46,7 @@ public class HttpAIService : IAIService
         // 配置 HTTP 客户端
         _httpClient.BaseAddress = new Uri(_baseUrl);
         _httpClient.DefaultRequestHeaders.Clear();
-        
+
         if (_provider == "Anthropic")
         {
             _httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
@@ -203,14 +203,18 @@ public class HttpAIService : IAIService
         using var reader = new StreamReader(stream);
 
         string? line;
-        while ((line = await reader.ReadLineAsync()) != null)
+        while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
         {
             if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: "))
+            {
                 continue;
+            }
 
             var data = line.Substring(6); // 移除 "data: " 前缀
             if (data == "[DONE]")
+            {
                 break;
+            }
 
             try
             {
@@ -293,20 +297,26 @@ public class HttpAIService : IAIService
         using var reader = new StreamReader(stream);
 
         string? line;
-        while ((line = await reader.ReadLineAsync()) != null)
+        while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
         {
             if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("event: "))
+            {
                 continue;
+            }
 
             var eventType = line.Substring(7);
-            var dataLine = await reader.ReadLineAsync();
-            
+            var dataLine = await reader.ReadLineAsync(cancellationToken);
+
             if (dataLine == null || !dataLine.StartsWith("data: "))
+            {
                 continue;
+            }
 
             var data = dataLine.Substring(6);
             if (eventType == "message_stop")
+            {
                 break;
+            }
 
             try
             {
@@ -357,7 +367,7 @@ public class HttpAIService : IAIService
     /// <summary>
     /// 估算 Token 数 (简化版: ~4 字符 = 1 token)
     /// </summary>
-    private int EstimateTokens(string text)
+    private static int EstimateTokens(string text)
     {
         return text.Length / 4;
     }
@@ -376,7 +386,7 @@ public class HttpAIService : IAIService
         };
     }
 
-    private decimal CalculateOpenAICost(string model, int inputTokens, int outputTokens)
+    private static decimal CalculateOpenAICost(string model, int inputTokens, int outputTokens)
     {
         var (inputCost, outputCost) = model switch
         {
@@ -390,7 +400,7 @@ public class HttpAIService : IAIService
         return (inputTokens * inputCost / 1_000_000) + (outputTokens * outputCost / 1_000_000);
     }
 
-    private decimal CalculateAnthropicCost(string model, int inputTokens, int outputTokens)
+    private static decimal CalculateAnthropicCost(string model, int inputTokens, int outputTokens)
     {
         var (inputCost, outputCost) = model switch
         {

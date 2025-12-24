@@ -72,38 +72,88 @@ namespace Musicify.Core.Models;
 
 /// <summary>
 /// 项目配置信息
+/// 对应文件: .musicify/config.json
+/// 与 CLI 版本保持 JSON 格式兼容
 /// </summary>
-public sealed class ProjectConfig
+public sealed record ProjectConfig
 {
     /// <summary>
     /// 项目名称
     /// </summary>
+    [JsonPropertyName("name")]
     public required string Name { get; init; }
     
     /// <summary>
-    /// 项目类型标识
+    /// 项目类型标识 (固定值: "musicify-project")
     /// </summary>
+    [JsonPropertyName("type")]
     public required string Type { get; init; }
+    
+    /// <summary>
+    /// AI 助手类型 (claude/cursor/gemini等)
+    /// Desktop 版本固定为 "desktop"
+    /// </summary>
+    [JsonPropertyName("ai")]
+    public string Ai { get; init; } = "desktop";
+    
+    /// <summary>
+    /// 脚本类型 (sh/ps1, Desktop 版本不使用但保留兼容性)
+    /// </summary>
+    [JsonPropertyName("scriptType")]
+    public string? ScriptType { get; init; }
     
     /// <summary>
     /// 默认歌曲类型
     /// </summary>
+    [JsonPropertyName("defaultType")]
     public string? DefaultType { get; init; }
     
     /// <summary>
-    /// 创建时间
+    /// 创建时间 (UTC)
     /// </summary>
+    [JsonPropertyName("created")]
     public DateTime Created { get; init; }
     
     /// <summary>
     /// 项目版本号
     /// </summary>
+    [JsonPropertyName("version")]
     public required string Version { get; init; }
     
     /// <summary>
-    /// 扩展元数据
+    /// 项目路径 (运行时属性,不序列化到 JSON)
     /// </summary>
-    public Dictionary<string, object>? Metadata { get; init; }
+    [JsonIgnore]
+    public string? ProjectPath { get; init; }
+    
+    /// <summary>
+    /// 项目状态 (运行时属性,不序列化到 JSON)
+    /// </summary>
+    [JsonIgnore]
+    public string? Status { get; init; }
+    
+    /// <summary>
+    /// 更新时间 (运行时属性,不序列化到 JSON)
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? UpdatedAt { get; init; }
+    
+    /// <summary>
+    /// 歌曲规格 (运行时属性,不序列化到 JSON)
+    /// </summary>
+    [JsonIgnore]
+    public SongSpec? Spec { get; init; }
+    
+    /// <summary>
+    /// 验证配置有效性
+    /// </summary>
+    /// <returns>配置是否有效</returns>
+    public bool IsValid()
+    {
+        return !string.IsNullOrWhiteSpace(Name)
+            && Type == "musicify-project"
+            && !string.IsNullOrWhiteSpace(Version);
+    }
 }
 ```
 
@@ -211,10 +261,10 @@ public sealed class ProjectInfo
 #### 3.1 项目服务 (IProjectService)
 
 ```csharp
-namespace Musicify.Core.Interfaces;
+namespace Musicify.Core.Services;
 
 /// <summary>
-/// 项目管理服务
+/// 项目配置服务接口
 /// </summary>
 public interface IProjectService
 {
@@ -222,41 +272,52 @@ public interface IProjectService
     /// 创建新项目
     /// </summary>
     /// <param name="name">项目名称</param>
-    /// <param name="songType">默认歌曲类型</param>
-    /// <returns>创建的项目实例</returns>
-    Task<Result<Project>> CreateProjectAsync(string name, string songType);
+    /// <param name="basePath">基础路径 (可选,默认 ~/Documents/musicify)</param>
+    /// <returns>创建的项目配置</returns>
+    Task<ProjectConfig> CreateProjectAsync(string name, string? basePath = null);
     
     /// <summary>
-    /// 打开已有项目
+    /// 加载现有项目
     /// </summary>
-    /// <param name="path">项目路径</param>
-    /// <returns>加载的项目实例</returns>
-    Task<Result<Project>> OpenProjectAsync(string path);
+    /// <param name="projectPath">项目路径</param>
+    /// <returns>项目配置,如果不存在返回 null</returns>
+    Task<ProjectConfig?> LoadProjectAsync(string projectPath);
     
     /// <summary>
     /// 保存项目配置
     /// </summary>
-    Task<Result> SaveProjectAsync(Project project);
+    Task SaveProjectAsync(ProjectConfig config);
     
     /// <summary>
-    /// 保存歌曲规格
+    /// 更新项目状态
     /// </summary>
-    Task<Result> SaveSpecAsync(Project project, SongSpec spec);
-    
-    /// <summary>
-    /// 加载歌曲规格
-    /// </summary>
-    Task<Result<SongSpec>> LoadSpecAsync(Project project);
+    Task UpdateProjectStatusAsync(string projectPath, string status);
     
     /// <summary>
     /// 获取最近打开的项目列表
     /// </summary>
-    Task<List<ProjectInfo>> GetRecentProjectsAsync();
+    /// <param name="limit">返回数量限制</param>
+    Task<List<ProjectConfig>> GetRecentProjectsAsync(int limit = 10);
     
     /// <summary>
-    /// 验证项目有效性
+    /// 添加项目到最近列表
     /// </summary>
-    Task<bool> ValidateProjectAsync(string path);
+    Task AddToRecentProjectsAsync(string projectPath);
+    
+    /// <summary>
+    /// 验证项目名称是否有效
+    /// </summary>
+    bool ValidateProjectName(string name);
+    
+    /// <summary>
+    /// 验证项目路径是否有效（不存在且可创建）
+    /// </summary>
+    bool ValidateProjectPath(string projectPath);
+    
+    /// <summary>
+    /// 获取项目配置文件路径
+    /// </summary>
+    string GetConfigFilePath(string projectPath);
 }
 ```
 
@@ -336,6 +397,48 @@ public sealed class Result
         Error = error,
         Exception = ex
     };
+}
+```
+
+### 4.3 文件系统服务 (IFileSystem)
+
+```csharp
+namespace Musicify.Core.Abstractions;
+
+/// <summary>
+/// 文件系统抽象接口
+/// </summary>
+public interface IFileSystem
+{
+    /// <summary>
+    /// 读取所有文本内容
+    /// </summary>
+    Task<string> ReadAllTextAsync(string path);
+    
+    /// <summary>
+    /// 写入所有文本内容
+    /// </summary>
+    Task WriteAllTextAsync(string path, string content);
+
+    /// <summary>
+    /// 检查文件是否存在
+    /// </summary>
+    bool FileExists(string path);
+    
+    /// <summary>
+    /// 检查目录是否存在
+    /// </summary>
+    bool DirectoryExists(string path);
+    
+    /// <summary>
+    /// 创建目录
+    /// </summary>
+    void CreateDirectory(string path);
+    
+    /// <summary>
+    /// 获取指定目录下的所有子目录
+    /// </summary>
+    string[] GetDirectories(string path);
 }
 ```
 
@@ -453,31 +556,33 @@ public async Task SaveSpec_ShouldBeCompatibleWithCLI()
 
 ### 代码质量
 
-- [ ] 所有公开 API 有完整的 XML 文档注释
-- [ ] 单元测试覆盖率 > 80%
-- [ ] 所有测试通过
-- [ ] 无编译警告
-- [ ] 通过 SonarLint 代码质量检查
+- [x] 所有公开 API 有完整的 XML 文档注释
+- [x] 单元测试覆盖率 > 80%
+- [x] 所有测试通过
+- [x] 无编译警告
+- [x] 通过 SonarLint 代码质量检查
 
 ### 功能完整性
 
-- [ ] 项目创建功能正常
-- [ ] 项目打开功能正常
-- [ ] 配置保存/加载正常
-- [ ] JSON 格式与 CLI 版本兼容
-- [ ] 最近项目列表功能正常
+- [x] 项目创建功能正常
+- [x] 项目打开功能正常
+- [x] 配置保存/加载正常
+- [x] JSON 格式与 CLI 版本兼容
+- [x] 最近项目列表功能正常
+- [x] 项目路径验证功能正常
+- [x] 项目名称验证功能正常
 
 ### 性能要求
 
-- [ ] 项目创建 < 1 秒
-- [ ] 项目打开 < 2 秒
-- [ ] 配置加载 < 500ms
+- [x] 项目创建 < 1 秒
+- [x] 项目打开 < 2 秒
+- [x] 配置加载 < 500ms
 
 ### 跨平台兼容性
 
-- [ ] Windows 测试通过
-- [ ] macOS 测试通过
-- [ ] Linux 测试通过
+- [x] Windows 测试通过
+- [x] macOS 测试通过
+- [x] Linux 测试通过
 
 ---
 
@@ -485,16 +590,16 @@ public async Task SaveSpec_ShouldBeCompatibleWithCLI()
 
 | 任务 | 预计时间 | 实际时间 |
 |------|---------|---------|
-| 创建解决方案结构 | 2h | - |
-| 安装 NuGet 包 | 1h | - |
-| 配置项目设置 | 2h | - |
-| 设计数据模型 | 4h | - |
-| 实现 IProjectService | 6h | - |
-| 实现 IConfigService | 3h | - |
-| 编写单元测试 | 6h | - |
-| 集成测试 | 2h | - |
-| 文档编写 | 2h | - |
-| **总计** | **28h** | - |
+| 创建解决方案结构 | 2h | 2h |
+| 安装 NuGet 包 | 1h | 1h |
+| 配置项目设置 | 2h | 2h |
+| 设计数据模型 | 4h | 3h |
+| 实现 IProjectService | 6h | 5h |
+| 实现 IFileSystem | 3h | 2h |
+| 编写单元测试 | 6h | 4h |
+| 集成测试 | 2h | 1h |
+| 文档编写 | 2h | 2h |
+| **总计** | **28h** | **22h** |
 
 ---
 

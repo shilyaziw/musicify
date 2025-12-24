@@ -67,6 +67,12 @@ public class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _errorMessage, value);
     }
 
+    /// <summary>
+    /// 初始化 MainWindowViewModel 实例
+    /// </summary>
+    /// <param name="projectService">项目服务</param>
+    /// <param name="fileSystem">文件系统服务</param>
+    /// <param name="navigationService">导航服务（可选）</param>
     public MainWindowViewModel(
         IProjectService projectService,
         IFileSystem fileSystem,
@@ -138,7 +144,7 @@ public class MainWindowViewModel : ViewModelBase
             var project = await _projectService.LoadProjectAsync(projectPath);
             CurrentProject = project;
             ProjectSummary = CreateProjectSummary(project);
-            
+
             // 通知歌词编辑器加载项目 (如果已打开)
             // 这将在 View 层处理
         }
@@ -227,10 +233,10 @@ public class MainWindowViewModel : ViewModelBase
             ErrorMessage = null;
 
             await _projectService.SaveProjectAsync(CurrentProject);
-            
+
             // 更新项目摘要
             ProjectSummary = CreateProjectSummary(CurrentProject);
-            
+
             // 显示保存成功提示 (可以通过事件或消息系统)
         }
         catch (Exception ex)
@@ -246,8 +252,20 @@ public class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// 创建项目摘要
     /// </summary>
-    internal ProjectSummary CreateProjectSummary(ProjectConfig project)
+    public ProjectSummary CreateProjectSummary(ProjectConfig? project)
     {
+        if (project == null)
+        {
+            return new ProjectSummary(
+                ProjectName: "未知项目",
+                Status: "draft",
+                SongType: "未知",
+                CreatedAt: DateTime.Now,
+                UpdatedAt: DateTime.Now,
+                HasMidiFile: false,
+                HasLyrics: false
+            );
+        }
         // 检查是否有 MIDI 文件
         var hasMidiFile = false;
         if (!string.IsNullOrWhiteSpace(project.ProjectPath))
@@ -258,9 +276,9 @@ public class MainWindowViewModel : ViewModelBase
                 // 检查是否有 .mid 或 .midi 文件
                 try
                 {
-                    var allFiles = Directory.GetFiles(midiDir, "*.*", SearchOption.TopDirectoryOnly);
-                    hasMidiFile = allFiles.Any(f => 
-                        f.EndsWith(".mid", StringComparison.OrdinalIgnoreCase) || 
+                    var allFiles = _fileSystem.GetFiles(midiDir, "*.*", SearchOption.TopDirectoryOnly);
+                    hasMidiFile = allFiles.Any(f =>
+                        f.EndsWith(".mid", StringComparison.OrdinalIgnoreCase) ||
                         f.EndsWith(".midi", StringComparison.OrdinalIgnoreCase));
                 }
                 catch
@@ -269,7 +287,7 @@ public class MainWindowViewModel : ViewModelBase
                 }
             }
         }
-        
+
         // 检查是否有歌词文件
         var hasLyrics = false;
         if (!string.IsNullOrWhiteSpace(project.ProjectPath))

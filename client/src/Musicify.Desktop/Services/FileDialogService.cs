@@ -1,7 +1,7 @@
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Musicify.Core.Services;
-using System.Linq;
 
 namespace Musicify.Desktop.Services;
 
@@ -10,7 +10,7 @@ namespace Musicify.Desktop.Services;
 /// </summary>
 public class FileDialogService : IFileDialogService
 {
-    private Window? GetMainWindow()
+    private static Window? GetMainWindow()
     {
         return Avalonia.Application.Current?.ApplicationLifetime is
             Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop
@@ -28,10 +28,12 @@ public class FileDialogService : IFileDialogService
     {
         var window = GetMainWindow();
         if (window == null)
+        {
             return null;
+        }
 
         var storageProvider = window.StorageProvider;
-        
+
         var filePickerOptions = new FilePickerOpenOptions
         {
             Title = title ?? "选择文件",
@@ -39,7 +41,7 @@ public class FileDialogService : IFileDialogService
         };
 
         // 设置初始目录
-        if (!string.IsNullOrWhiteSpace(initialDirectory) && 
+        if (!string.IsNullOrWhiteSpace(initialDirectory) &&
             System.IO.Directory.Exists(initialDirectory))
         {
             try
@@ -79,10 +81,12 @@ public class FileDialogService : IFileDialogService
     {
         var window = GetMainWindow();
         if (window == null)
+        {
             return null;
+        }
 
         var storageProvider = window.StorageProvider;
-        
+
         var filePickerOptions = new FilePickerSaveOptions
         {
             Title = title ?? "保存文件",
@@ -90,7 +94,7 @@ public class FileDialogService : IFileDialogService
         };
 
         // 设置初始目录
-        if (!string.IsNullOrWhiteSpace(initialDirectory) && 
+        if (!string.IsNullOrWhiteSpace(initialDirectory) &&
             System.IO.Directory.Exists(initialDirectory))
         {
             try
@@ -128,10 +132,12 @@ public class FileDialogService : IFileDialogService
     {
         var window = GetMainWindow();
         if (window == null)
+        {
             return null;
+        }
 
         var storageProvider = window.StorageProvider;
-        
+
         var folderPickerOptions = new FolderPickerOpenOptions
         {
             Title = title ?? "选择文件夹",
@@ -139,7 +145,7 @@ public class FileDialogService : IFileDialogService
         };
 
         // 设置初始目录
-        if (!string.IsNullOrWhiteSpace(initialDirectory) && 
+        if (!string.IsNullOrWhiteSpace(initialDirectory) &&
             System.IO.Directory.Exists(initialDirectory))
         {
             try
@@ -169,7 +175,7 @@ public class FileDialogService : IFileDialogService
     {
         var result = new List<FilePickerFileType>();
         var parts = filters.Split('|');
-        
+
         if (parts.Length >= 2)
         {
             var description = parts[0].Trim();
@@ -178,7 +184,7 @@ public class FileDialogService : IFileDialogService
                 .Select(ext => ext.Trim().TrimStart('*'))
                 .Where(ext => !string.IsNullOrEmpty(ext))
                 .ToList();
-            
+
             if (extensions.Count > 0)
             {
                 result.Add(new FilePickerFileType(description)
@@ -187,7 +193,7 @@ public class FileDialogService : IFileDialogService
                 });
             }
         }
-        
+
         return result;
     }
 }

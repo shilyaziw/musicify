@@ -12,25 +12,25 @@ public record ChatMessage
     /// </summary>
     [JsonPropertyName("type")]
     public required string Type { get; init; }
-    
+
     /// <summary>
     /// 消息内容
     /// </summary>
     [JsonPropertyName("content")]
     public required string Content { get; init; }
-    
+
     /// <summary>
     /// 时间戳
     /// </summary>
     [JsonPropertyName("timestamp")]
     public DateTime Timestamp { get; init; } = DateTime.Now;
-    
+
     /// <summary>
     /// 是否正在流式生成 (不序列化到文件)
     /// </summary>
     [JsonIgnore]
     public bool IsStreaming { get; init; }
-    
+
     /// <summary>
     /// Token 使用量 (仅 AI 消息)
     /// </summary>

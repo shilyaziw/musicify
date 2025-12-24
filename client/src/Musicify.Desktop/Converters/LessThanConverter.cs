@@ -15,7 +15,9 @@ public class LessThanConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null || parameter == null)
+        {
             return false;
+        }
 
         // 尝试数值比较
         try

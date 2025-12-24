@@ -16,7 +16,7 @@ public interface IFileDialogService
         string? title = null,
         string? filters = null,
         string? initialDirectory = null);
-    
+
     /// <summary>
     /// 显示保存文件对话框
     /// </summary>
@@ -30,7 +30,7 @@ public interface IFileDialogService
         string? defaultFileName = null,
         string? filters = null,
         string? initialDirectory = null);
-    
+
     /// <summary>
     /// 显示选择文件夹对话框
     /// </summary>

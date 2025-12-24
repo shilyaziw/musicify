@@ -13,7 +13,7 @@ public partial class ExportView : UserControl
     public ExportView()
     {
         InitializeComponent();
-        
+
         // 从 DI 容器获取 ViewModel
         var app = Application.Current as App;
         if (app?.Services != null)

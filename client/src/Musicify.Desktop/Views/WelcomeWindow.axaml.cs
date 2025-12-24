@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Diagnostics;
@@ -5,7 +6,6 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Musicify.Core.Models;
 using Musicify.Core.ViewModels;
-using System.Threading.Tasks;
 
 namespace Musicify.Desktop.Views;
 
@@ -50,11 +50,17 @@ public partial class WelcomeWindow : Window
 
     private async Task<string?> BrowseForProjectAsync()
     {
-        var dialog = new OpenFolderDialog
+        if (StorageProvider == null)
         {
-            Title = "选择项目文件夹"
-        };
+            return null;
+        }
 
-        return await dialog.ShowAsync(this);
+        var result = await StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
+        {
+            Title = "选择项目文件夹",
+            AllowMultiple = false
+        });
+
+        return result.FirstOrDefault()?.Path.LocalPath;
     }
 }

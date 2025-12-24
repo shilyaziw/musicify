@@ -1,23 +1,21 @@
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using AvaloniaEdit;
 using Microsoft.Extensions.DependencyInjection;
 using Musicify.Core.ViewModels;
-using Musicify.Desktop;
-using System.ComponentModel;
 
 namespace Musicify.Desktop.Views;
 
 public partial class LyricsEditorView : UserControl
 {
-    private TextEditor? _textEditor;
-    private TextEditor? _textEditorSplit;
+    private TextBox? _textEditor;
+    private TextBox? _textEditorSplit;
 
     public LyricsEditorView()
     {
         InitializeComponent();
-        
+
         // 从 DI 容器获取 ViewModel
         var app = Application.Current as App;
         if (app?.Services != null)
@@ -26,7 +24,7 @@ public partial class LyricsEditorView : UserControl
             if (viewModel != null)
             {
                 DataContext = viewModel;
-                
+
                 // 监听 ViewModel 属性变化
                 viewModel.PropertyChanged += OnViewModelPropertyChanged;
             }
@@ -36,60 +34,37 @@ public partial class LyricsEditorView : UserControl
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
-        
-        // 获取 TextEditor 引用
-        _textEditor = this.FindControl<TextEditor>("LyricsTextEditor");
-        _textEditorSplit = this.FindControl<TextEditor>("LyricsTextEditorSplit");
-        
+
+        // 获取 TextBox 引用
+        _textEditor = this.FindControl<TextBox>("LyricsTextEditor");
+        _textEditorSplit = this.FindControl<TextBox>("LyricsTextEditorSplit");
+
         // 配置编辑器
-        ConfigureTextEditor(_textEditor);
-        ConfigureTextEditor(_textEditorSplit);
-        
-        // 应用语法高亮
-        ApplySyntaxHighlighting();
+        ConfigureTextBox(_textEditor);
+        ConfigureTextBox(_textEditorSplit);
     }
 
-    private void ConfigureTextEditor(TextEditor? editor)
+    private void ConfigureTextBox(TextBox? textBox)
     {
-        if (editor == null) return;
-        
-        // 配置编辑器选项
-        editor.Options = new AvaloniaEdit.TextEditorOptions
+        if (textBox == null)
         {
-            ShowBoxForControlCharacters = false,
-            EnableHyperlinks = false,
-            EnableEmailHyperlinks = false,
-            EnableRectangularSelection = true,
-            EnableVirtualSpace = false,
-            AllowScrollBelowDocument = false,
-            IndentationSize = 4,
-            ConvertTabsToSpaces = false
-        };
-        
+            return;
+        }
+
         // 绑定文本内容
         if (DataContext is LyricsEditorViewModel viewModel)
         {
-            editor.Text = viewModel.LyricsText;
-            
+            textBox.Text = viewModel.LyricsText;
+
             // 双向绑定文本
-            editor.TextChanged += (s, e) =>
+            textBox.TextChanged += (s, e) =>
             {
-                if (s is TextEditor te && DataContext is LyricsEditorViewModel vm)
+                if (s is TextBox tb && DataContext is LyricsEditorViewModel vm)
                 {
-                    vm.LyricsText = te.Text;
+                    vm.LyricsText = tb.Text ?? string.Empty;
                 }
             };
         }
-    }
-
-    private void ApplySyntaxHighlighting()
-    {
-        // 注意: AvaloniaEdit 0.10.12 与 Avalonia 11.1.3 存在版本兼容性问题
-        // 暂时禁用语法高亮，等待兼容版本或使用其他方案
-        // TODO: 当有兼容的 AvaloniaEdit 版本时，重新启用语法高亮功能
-        
-        // 可以尝试使用简单的文本样式来实现段落标记高亮
-        // 或者等待 AvaloniaEdit 更新到兼容版本
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -103,7 +78,7 @@ public partial class LyricsEditorView : UserControl
                 {
                     _textEditor.Text = viewModel.LyricsText;
                 }
-                
+
                 if (_textEditorSplit != null && _textEditorSplit.Text != viewModel.LyricsText)
                 {
                     _textEditorSplit.Text = viewModel.LyricsText;
@@ -112,5 +87,3 @@ public partial class LyricsEditorView : UserControl
         }
     }
 }
-
-

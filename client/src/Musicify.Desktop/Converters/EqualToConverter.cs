@@ -15,7 +15,9 @@ public class EqualToConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value == null || parameter == null)
+        {
             return false;
+        }
 
         // 尝试将参数转换为与值相同的类型
         try

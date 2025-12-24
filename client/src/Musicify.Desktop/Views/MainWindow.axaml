@@ -19,36 +19,85 @@
     </Design.DataContext>
 
     <DockPanel>
-        <!-- 菜单栏 -->
-        <Menu DockPanel.Dock="Top" Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
-            <MenuItem Header="文件(_F)">
-                <MenuItem Header="保存(_S)" Command="{Binding SaveProjectCommand}" />
-                <MenuItem Header="导出(_E)" />
-                <Separator />
-                <MenuItem Header="退出(_X)" />
-            </MenuItem>
-            <MenuItem Header="编辑(_E)">
-                <MenuItem Header="撤销(_Z)" />
-                <MenuItem Header="重做(_Y)" />
-            </MenuItem>
-            <MenuItem Header="视图(_V)">
-                <MenuItem Header="项目概览" Command="{Binding NavigateToProjectOverviewCommand}" />
-                <MenuItem Header="歌词编辑器" Command="{Binding NavigateToLyricsEditorCommand}" />
-                <MenuItem Header="AI 对话" Command="{Binding NavigateToAIChatCommand}" />
-            </MenuItem>
-            <MenuItem Header="帮助(_H)">
-                <MenuItem Header="关于 Musicify" />
-            </MenuItem>
-        </Menu>
+        <!-- 顶部导航栏 -->
+        <Border DockPanel.Dock="Top"
+                Background="#1E1E1E"
+                Padding="16,12"
+                BorderBrush="#374151"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <!-- 工具栏 -->
-        <Border DockPanel.Dock="Top" Background="#FAFAFA" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1" Padding="10,5">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Content="💾 保存" Command="{Binding SaveProjectCommand}" />
-                <Button Content="📤 导出" />
-                <Separator />
-                <Button Content="⚙️ 设置" />
-            </StackPanel>
+                <!-- Logo 和应用标题 -->
+                <StackPanel Grid.Column="0"
+                           Orientation="Horizontal"
+                           Spacing="12"
+                           VerticalAlignment="Center">
+                    <Border Background="#6366F1"
+                           CornerRadius="6"
+                           Padding="8"
+                           Width="32"
+                           Height="32">
+                        <TextBlock Text="🎵"
+                                  FontSize="16"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Musicify"
+                                  FontSize="18"
+                                  FontWeight="SemiBold"
+                                  Foreground="White"/>
+                        <TextBlock Text="{Binding CurrentProject.Name, FallbackValue='新项目', StringFormat='{}{0}'}"
+                                  FontSize="12"
+                                  Foreground="#D1D5DB"
+                                  Margin="0,-2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 中间部分（可扩展） -->
+                <StackPanel Grid.Column="1"
+                           Orientation="Horizontal"
+                           Spacing="8"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center">
+                    <Border Background="#374151"
+                           CornerRadius="20"
+                           Padding="12,6">
+                        <TextBlock Text="🎵 项目管理"
+                                  FontSize="14"
+                                  Foreground="White"
+                                  FontWeight="Medium"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- 右侧工具按钮 -->
+                <StackPanel Grid.Column="2"
+                           Orientation="Horizontal"
+                           Spacing="8"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center">
+                    <Button Classes="icon"
+                           Command="{Binding SaveProjectCommand}"
+                           ToolTip.Tip="保存项目 (Ctrl+S)">
+                        <TextBlock Text="💾" FontSize="14"/>
+                    </Button>
+                    <Button Classes="icon"
+                           Command="{Binding NavigateToExportCommand}"
+                           ToolTip.Tip="导出项目">
+                        <TextBlock Text="📤" FontSize="14"/>
+                    </Button>
+                    <Button Classes="icon"
+                           Command="{Binding NavigateToProjectSettingsCommand}"
+                           ToolTip.Tip="项目设置">
+                        <TextBlock Text="⚙️" FontSize="14"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- 主内容区域 -->
@@ -59,139 +108,211 @@
             </Grid.ColumnDefinitions>
 
             <!-- 左侧边栏: 项目信息面板 -->
-            <Border Grid.Column="0" 
-                    Background="#FFFFFF" 
-                    BorderBrush="#E5E7EB" 
+            <Border Grid.Column="0"
+                    Background="#1F2937"
+                    BorderBrush="#374151"
                     BorderThickness="0,0,1,0">
                 <ScrollViewer>
                     <StackPanel Margin="16" Spacing="16">
                         <!-- 项目信息卡片 -->
-                        <Border Background="#F9FAFB" 
-                                CornerRadius="8" 
+                        <Border Background="#374151"
+                                CornerRadius="12"
                                 Padding="16"
-                                BorderBrush="#E5E7EB"
+                                BorderBrush="#4B5563"
                                 BorderThickness="1">
                             <StackPanel Spacing="12">
-                                <TextBlock Text="项目信息" 
-                                          FontSize="18" 
-                                          FontWeight="Bold"
-                                          Foreground="#1F2937" />
-                                
-                                <StackPanel Spacing="8">
-                                    <TextBlock>
-                                        <Run Text="名称: " FontWeight="Bold" Foreground="#4B5563" />
-                                        <Run Text="{Binding ProjectSummary.ProjectName}" Foreground="#1F2937" />
-                                    </TextBlock>
-                                    
-                                    <TextBlock>
-                                        <Run Text="状态: " FontWeight="Bold" Foreground="#4B5563" />
-                                        <Run Text="{Binding ProjectSummary.Status}" Foreground="#1F2937" />
-                                    </TextBlock>
-                                    
-                                    <TextBlock>
-                                        <Run Text="类型: " FontWeight="Bold" Foreground="#4B5563" />
-                                        <Run Text="{Binding ProjectSummary.SongType}" Foreground="#1F2937" />
-                                    </TextBlock>
-                                    
-                                    <TextBlock>
-                                        <Run Text="创建时间: " FontWeight="Bold" Foreground="#4B5563" />
-                                        <Run Text="{Binding ProjectSummary.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Foreground="#1F2937" />
-                                    </TextBlock>
-                                    
-                                    <TextBlock>
-                                        <Run Text="更新时间: " FontWeight="Bold" Foreground="#4B5563" />
-                                        <Run Text="{Binding ProjectSummary.UpdatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Foreground="#1F2937" />
-                                    </TextBlock>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="📋" FontSize="16"/>
+                                    <TextBlock Text="项目信息"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White" />
+                                </StackPanel>
+
+                                <StackPanel Spacing="12">
+                                    <StackPanel>
+                                        <TextBlock Text="名称"
+                                                  FontSize="12"
+                                                  Foreground="#D1D5DB"
+                                                  Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding ProjectSummary.ProjectName, FallbackValue='-', TargetNullValue='-'}"
+                                                  FontSize="14"
+                                                  Foreground="White"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="状态"
+                                                  FontSize="12"
+                                                  Foreground="#D1D5DB"
+                                                  Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding ProjectSummary.Status, FallbackValue='-', TargetNullValue='-'}"
+                                                  FontSize="14"
+                                                  Foreground="White"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="类型"
+                                                  FontSize="12"
+                                                  Foreground="#D1D5DB"
+                                                  Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding ProjectSummary.SongType, FallbackValue='-', TargetNullValue='-'}"
+                                                  FontSize="14"
+                                                  Foreground="White"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="创建时间"
+                                                  FontSize="12"
+                                                  Foreground="#D1D5DB"
+                                                  Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding ProjectSummary.CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}', FallbackValue='-', TargetNullValue='-'}"
+                                                  FontSize="14"
+                                                  Foreground="White"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+
+                                    <StackPanel>
+                                        <TextBlock Text="更新时间"
+                                                  FontSize="12"
+                                                  Foreground="#D1D5DB"
+                                                  Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding ProjectSummary.UpdatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}', FallbackValue='-', TargetNullValue='-'}"
+                                                  FontSize="14"
+                                                  Foreground="White"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </StackPanel>
                         </Border>
-                        
+
                         <!-- 导航菜单 -->
-                        <Border Background="#F9FAFB" 
-                                CornerRadius="8" 
+                        <Border Background="#374151"
+                                CornerRadius="12"
                                 Padding="16"
-                                BorderBrush="#E5E7EB"
+                                BorderBrush="#4B5563"
                                 BorderThickness="1">
                             <StackPanel Spacing="8">
-                                <TextBlock Text="导航" 
-                                          FontSize="16" 
-                                          FontWeight="Bold"
-                                          Foreground="#1F2937"
-                                          Margin="0,0,0,8" />
-                                
-                                <Button Content="📝 歌词编辑" 
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="🧭" FontSize="16"/>
+                                    <TextBlock Text="导航"
+                                              FontSize="16"
+                                              FontWeight="SemiBold"
+                                              Foreground="White"
+                                              Margin="0,0,0,8" />
+                                </StackPanel>
+
+                                <Button Classes="secondary"
                                        Command="{Binding NavigateToLyricsEditorCommand}"
                                        HorizontalAlignment="Stretch"
                                        HorizontalContentAlignment="Left"
-                                       Background="Transparent"
-                                       BorderBrush="#E5E7EB"
-                                       Padding="12,8" />
-                                
-                                <Button Content="🤖 AI 对话" 
+                                       Padding="12,10"
+                                       Margin="0,2">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="📝" FontSize="16"/>
+                                        <TextBlock Text="歌词编辑"
+                                                  FontSize="14"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Classes="secondary"
                                        Command="{Binding NavigateToAIChatCommand}"
                                        HorizontalAlignment="Stretch"
                                        HorizontalContentAlignment="Left"
-                                       Background="Transparent"
-                                       BorderBrush="#E5E7EB"
-                                       Padding="12,8" />
-                                
-                                <Button Content="🎵 MIDI 分析" 
+                                       Padding="12,10"
+                                       Margin="0,2">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="🤖" FontSize="16"/>
+                                        <TextBlock Text="AI 对话"
+                                                  FontSize="14"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Classes="secondary"
                                        Command="{Binding NavigateToMidiAnalysisCommand}"
                                        HorizontalAlignment="Stretch"
                                        HorizontalContentAlignment="Left"
-                                       Background="Transparent"
-                                       BorderBrush="#E5E7EB"
-                                       Padding="12,8" />
-                                
-                                <Button Content="⚙️ 项目设置" 
+                                       Padding="12,10"
+                                       Margin="0,2">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="🎵" FontSize="16"/>
+                                        <TextBlock Text="MIDI 分析"
+                                                  FontSize="14"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Classes="secondary"
                                        Command="{Binding NavigateToProjectSettingsCommand}"
                                        HorizontalAlignment="Stretch"
                                        HorizontalContentAlignment="Left"
-                                       Background="Transparent"
-                                       BorderBrush="#E5E7EB"
-                                       Padding="12,8" />
-                                
-                                <Button Content="📤 导出歌词" 
+                                       Padding="12,10"
+                                       Margin="0,2">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="⚙️" FontSize="16"/>
+                                        <TextBlock Text="项目设置"
+                                                  FontSize="14"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Classes="secondary"
                                        Command="{Binding NavigateToExportCommand}"
                                        HorizontalAlignment="Stretch"
                                        HorizontalContentAlignment="Left"
-                                       Background="Transparent"
-                                       BorderBrush="#E5E7EB"
-                                       Padding="12,8" />
+                                       Padding="12,10"
+                                       Margin="0,2">
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <TextBlock Text="📤" FontSize="16"/>
+                                        <TextBlock Text="导出歌词"
+                                                  FontSize="14"
+                                                  FontWeight="Medium"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Border>
 
                         <!-- 加载状态 -->
                         <Border IsVisible="{Binding IsLoading}"
-                                Background="#FEF3C7"
-                                CornerRadius="8"
+                                Background="#F59E0B"
+                                CornerRadius="12"
                                 Padding="12">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <TextBlock Text="⏳" FontSize="16" />
-                                <TextBlock Text="加载中..." Foreground="#92400E" />
+                                <TextBlock Text="加载中..." Foreground="White" FontWeight="Medium"/>
                             </StackPanel>
                         </Border>
 
                         <!-- 错误消息 -->
                         <Border IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                Background="#FEE2E2"
-                                CornerRadius="8"
+                                Background="#EF4444"
+                                CornerRadius="12"
                                 Padding="12">
                             <StackPanel Spacing="4">
-                                <TextBlock Text="❌ 错误" FontWeight="Bold" Foreground="#991B1B" />
-                                <TextBlock Text="{Binding ErrorMessage}" 
-                                          Foreground="#991B1B"
-                                          TextWrapping="Wrap" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="❌" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Text="错误" FontWeight="Bold" Foreground="White" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                          Foreground="White"
+                                          TextWrapping="Wrap"
+                                          FontSize="12"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
             </Border>
-            
+
             <!-- 右侧内容区域 -->
-            <ContentControl Grid.Column="1" 
-                           Background="#FFFFFF"
-                           Name="ContentArea" />
+            <Border Grid.Column="1"
+                    Background="#F3F4F6">
+                <ContentControl Name="ContentArea"
+                               Background="Transparent"/>
+            </Border>
         </Grid>
     </DockPanel>
 </Window>

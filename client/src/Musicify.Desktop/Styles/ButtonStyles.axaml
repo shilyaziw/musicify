@@ -13,17 +13,37 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    
+    <!-- Primary Button Path Styles -->
+    <Style Selector="Button.primary Path">
+        <Setter Property="Fill" Value="White" />
+    </Style>
+    
+    <Style Selector="Button.primary:pointerover Path">
+        <Setter Property="Fill" Value="White" />
+    </Style>
+    
+    <Style Selector="Button.primary:pressed Path">
+        <Setter Property="Fill" Value="White" />
+    </Style>
+    
+    <Style Selector="Button.primary:disabled Path">
+        <Setter Property="Fill" Value="#6B7280" />
+    </Style>
 
     <Style Selector="Button.primary:pointerover">
         <Setter Property="Background" Value="#4F46E5" />
+        <Setter Property="Foreground" Value="White" />
     </Style>
 
     <Style Selector="Button.primary:pressed">
         <Setter Property="Background" Value="#4338CA" />
+        <Setter Property="Foreground" Value="White" />
     </Style>
 
     <Style Selector="Button.primary:disabled">
         <Setter Property="Background" Value="#D1D5DB" />
+        <Setter Property="Foreground" Value="#6B7280" />
         <Setter Property="Opacity" Value="0.6" />
     </Style>
 
@@ -40,9 +60,23 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    
+    <!-- Secondary Button Path Styles -->
+    <Style Selector="Button.secondary Path">
+        <Setter Property="Fill" Value="#6366F1" />
+    </Style>
+    
+    <Style Selector="Button.secondary:pointerover Path">
+        <Setter Property="Fill" Value="#4F46E5" />
+    </Style>
+    
+    <Style Selector="Button.secondary:pressed Path">
+        <Setter Property="Fill" Value="#4338CA" />
+    </Style>
 
     <Style Selector="Button.secondary:pointerover">
         <Setter Property="Background" Value="#EEF2FF" />
+        <Setter Property="Foreground" Value="#6366F1" />
     </Style>
 
     <Style Selector="Button.secondary:pressed">
@@ -67,6 +101,8 @@
 
     <Style Selector="Button.icon:pointerover">
         <Setter Property="Background" Value="#F3F4F6" />
+        <Setter Property="Foreground" Value="#4F46E5" />
+
     </Style>
 
     <!-- Project Item Button -->

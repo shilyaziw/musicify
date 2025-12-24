@@ -1,10 +1,10 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Musicify.Core.ViewModels"
-             xmlns:ae="using:AvaloniaEdit"
+             xmlns:converters="using:Musicify.Desktop.Converters"
              x:Class="Musicify.Desktop.Views.LyricsEditorView"
              x:DataType="vm:LyricsEditorViewModel">
-    
+
     <UserControl.KeyBindings>
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveLyricsCommand}" />
         <KeyBinding Gesture="Ctrl+F" Command="{Binding FormatLyricsCommand}" />
@@ -12,73 +12,86 @@
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoCommand}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoCommand}" />
     </UserControl.KeyBindings>
-    
-    <Grid RowDefinitions="Auto,*,Auto">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto">
         <!-- 工具栏 -->
-        <Border Grid.Row="0" 
-                Background="#FAFAFA" 
-                BorderBrush="#E5E7EB" 
-                BorderThickness="0,0,0,1" 
+        <Border Grid.Row="0"
+                Background="#FAFAFA"
+                BorderBrush="#E5E7EB"
+                BorderThickness="0,0,0,1"
                 Padding="10,5">
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="📝 歌词编辑器" 
-                          FontSize="18" 
+                <TextBlock Text="📝 歌词编辑器"
+                          FontSize="18"
                           FontWeight="Bold"
                           Foreground="#1F2937"
                           VerticalAlignment="Center" />
                 <Separator />
-                <Button Content="💾 保存" 
+                <Button Content="💾 保存"
                        Command="{Binding SaveLyricsCommand}"
                        IsEnabled="{Binding IsModified}"
                        ToolTip.Tip="Ctrl+S" />
-                <Button Content="↶ 撤销" 
+                <Button Content="↶ 撤销"
                        Command="{Binding UndoCommand}"
                        ToolTip.Tip="Ctrl+Z" />
-                <Button Content="↷ 重做" 
+                <Button Content="↷ 重做"
                        Command="{Binding RedoCommand}"
                        ToolTip.Tip="Ctrl+Y" />
                 <Separator />
-                <Button Content="📐 格式化" 
+                <Button Content="📐 格式化"
                        Command="{Binding FormatLyricsCommand}"
                        ToolTip.Tip="Ctrl+F" />
-                <Button Content="👁️ 预览" 
+                <Button Content="👁️ 预览"
                        Command="{Binding TogglePreviewCommand}"
                        ToolTip.Tip="Ctrl+P" />
+                <Separator />
+                <Button Content="🎵 押韵检查"
+                       Command="{Binding CheckRhymeCommand}"
+                       IsEnabled="{Binding !IsAnalyzingRhyme}"
+                       ToolTip.Tip="检查歌词押韵模式" />
             </StackPanel>
         </Border>
 
         <!-- 编辑器区域 -->
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto,*">
             <!-- 编辑器 (单屏模式) -->
-            <ae:TextEditor Grid.Column="0" 
-                          Grid.ColumnSpan="3"
-                          Name="LyricsTextEditor"
-                          IsVisible="{Binding ShowPreview, Converter={x:Static BoolConverters.Not}}"
-                          FontFamily="Consolas, Courier New, monospace"
-                          FontSize="14"
-                          ShowLineNumbers="True"
-                          WordWrap="True"
-                          Background="#FFFFFF"
-                          Foreground="#1F2937" />
+            <TextBox Grid.Column="0"
+                     Grid.ColumnSpan="3"
+                     Name="LyricsTextEditor"
+                     IsVisible="{Binding ShowPreview, Converter={x:Static BoolConverters.Not}}"
+                     FontFamily="Consolas, Courier New, monospace"
+                     FontSize="14"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     Background="#FFFFFF"
+                     Foreground="#1F2937"
+                     CaretBrush="#1F2937"
+                     SelectionBrush="#3B82F6"
+                     Text="{Binding LyricsText}" />
 
             <!-- 分屏模式: 编辑器 + 预览 -->
-            <Grid Grid.Column="0" 
+            <Grid Grid.Column="0"
                   Grid.ColumnSpan="3"
                   IsVisible="{Binding ShowPreview}"
                   ColumnDefinitions="*,Auto,*">
                 <!-- 编辑器 (左侧) -->
-                <ae:TextEditor Grid.Column="0"
-                              Name="LyricsTextEditorSplit"
-                              FontFamily="Consolas, Courier New, monospace"
-                              FontSize="14"
-                              ShowLineNumbers="True"
-                              WordWrap="True"
-                              Background="#FFFFFF"
-                              Foreground="#1F2937" />
+                <TextBox Grid.Column="0"
+                         Name="LyricsTextEditorSplit"
+                         FontFamily="Consolas, Courier New, monospace"
+                         FontSize="14"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         AcceptsTab="True"
+                         Background="#FFFFFF"
+                         Foreground="#1F2937"
+                         CaretBrush="#1F2937"
+                         SelectionBrush="#3B82F6"
+                         Text="{Binding LyricsText}" />
 
                 <!-- 分隔线 -->
-                <Border Grid.Column="1" 
-                        Width="1" 
+                <Border Grid.Column="1"
+                        Width="1"
                         Background="#E5E7EB" />
 
                 <!-- 预览区域 (右侧) -->
@@ -94,35 +107,76 @@
         </Grid>
 
         <!-- 状态栏 -->
-        <Border Grid.Row="2" 
-                Background="#F5F7FA" 
-                BorderBrush="#E5E7EB" 
-                BorderThickness="0,1,0,0" 
+        <Border Grid.Row="2"
+                Background="#F5F7FA"
+                BorderBrush="#E5E7EB"
+                BorderThickness="0,1,0,0"
                 Padding="15,8">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="20">
                     <TextBlock>
                         <Run Text="字数: " Foreground="#6B7280" />
-                        <Run Text="{Binding WordCount}" 
+                        <Run Text="{Binding WordCount}"
                              Foreground="#1F2937" FontWeight="SemiBold" />
                     </TextBlock>
                     <TextBlock>
                         <Run Text="段落: " Foreground="#6B7280" />
-                        <Run Text="{Binding SectionCount}" 
+                        <Run Text="{Binding SectionCount}"
                              Foreground="#1F2937" FontWeight="SemiBold" />
                     </TextBlock>
                     <TextBlock>
                         <Run Text="行数: " Foreground="#6B7280" />
-                        <Run Text="{Binding LineCount}" 
+                        <Run Text="{Binding LineCount}"
                              Foreground="#1F2937" FontWeight="SemiBold" />
                     </TextBlock>
+                    <!-- 押韵信息 -->
+                    <TextBlock IsVisible="{Binding RhymeAnalysis, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+                        <Run Text="押韵: " Foreground="#6B7280" />
+                        <Run Text="{Binding RhymeAnalysis.Pattern}"
+                             Foreground="#1F2937" FontWeight="SemiBold" />
+                        <Run Text=" (" Foreground="#6B7280" />
+                        <Run Text="{Binding RhymeAnalysis.QualityScore}"
+                             Foreground="#1F2937" FontWeight="SemiBold" />
+                        <Run Text="分)" Foreground="#6B7280" />
+                    </TextBlock>
+                    <!-- 押韵检查中 -->
+                    <TextBlock Text="正在检查押韵..."
+                              Foreground="#3B82F6"
+                              IsVisible="{Binding IsAnalyzingRhyme}" />
                 </StackPanel>
-                
-                <TextBlock Grid.Column="2" 
-                          Text="未保存" 
-                          Foreground="#DC2626"
-                          IsVisible="{Binding IsModified}" />
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="15">
+                    <!-- 未保存 -->
+                    <TextBlock Text="未保存"
+                              Foreground="#DC2626"
+                              IsVisible="{Binding IsModified}" />
+                </StackPanel>
             </Grid>
+        </Border>
+
+        <!-- 押韵建议面板 (可展开) -->
+        <Border Grid.Row="3"
+                Background="#FFF7ED"
+                BorderBrush="#FED7AA"
+                BorderThickness="0,1,0,0"
+                Padding="15,10"
+                IsVisible="{Binding RhymeAnalysis, Converter={x:Static converters:IsNotNullConverter.Instance}}">
+            <StackPanel Spacing="8" IsVisible="{Binding RhymeAnalysis.HasIssues}">
+                <TextBlock Text="💡 押韵建议"
+                          FontWeight="Bold"
+                          Foreground="#9A3412"
+                          FontSize="14" />
+                <ItemsControl ItemsSource="{Binding RhymeAnalysis.Suggestions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}"
+                                      Foreground="#7C2D12"
+                                      TextWrapping="Wrap"
+                                      Margin="0,2" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>

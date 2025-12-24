@@ -75,8 +75,8 @@
                         <TextBox Text="{Binding ProjectName}"
                                  Watermark="例如: 夏日回忆"
                                  FontSize="16" Padding="15" Height="50" />
-                        <TextBlock Text="{Binding ValidationErrors[ProjectName]}"
-                                   IsVisible="{Binding ValidationErrors[ProjectName], Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        <TextBlock Text="{Binding [ProjectName]}"
+                                   IsVisible="{Binding [ProjectName], Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                    Foreground="#DC2626" FontSize="14" />
                     </StackPanel>
 
@@ -90,8 +90,8 @@
                             <Button Grid.Column="1" Content="浏览..." Command="{Binding BrowseProjectPathCommand}"
                                     Classes="secondary" Margin="10,0,0,0" Width="100" Height="50" />
                         </Grid>
-                        <TextBlock Text="{Binding ValidationErrors[ProjectPath]}"
-                                   IsVisible="{Binding ValidationErrors[ProjectPath], Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        <TextBlock Text="{Binding [ProjectPath]}"
+                                   IsVisible="{Binding [ProjectPath], Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                    Foreground="#DC2626" FontSize="14" />
                     </StackPanel>
                 </StackPanel>
@@ -191,21 +191,21 @@
                     <!-- 创作模式选择 -->
                     <StackPanel Spacing="20">
                         <RadioButton Content="教练模式 - AI 引导逐步创作，适合深度打磨"
-                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=coach}"
+                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=coach, Mode=OneWay}"
                                     Tag="coach"
                                     Click="OnCreationModeRadioButtonClick"
                                     FontSize="16"
                                     Padding="15"
                                     Margin="0,0,0,10" />
                         <RadioButton Content="快速模式 - AI 一键生成完整歌词，适合快速创作"
-                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=express}"
+                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=express, Mode=OneWay}"
                                     Tag="express"
                                     Click="OnCreationModeRadioButtonClick"
                                     FontSize="16"
                                     Padding="15"
                                     Margin="0,0,0,10" />
                         <RadioButton Content="混合模式 - 结合引导和自动生成，灵活创作"
-                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=hybrid}"
+                                    IsChecked="{Binding CreationMode, Converter={StaticResource EqualToConverter}, ConverterParameter=hybrid, Mode=OneWay}"
                                     Tag="hybrid"
                                     Click="OnCreationModeRadioButtonClick"
                                     FontSize="16"

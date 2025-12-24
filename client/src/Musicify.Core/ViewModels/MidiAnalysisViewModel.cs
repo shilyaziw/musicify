@@ -15,7 +15,7 @@ public class MidiAnalysisViewModel : ViewModelBase
     private readonly IMidiAnalysisService _midiAnalysisService;
     private readonly IFileSystem _fileSystem;
     private readonly IFileDialogService? _fileDialogService;
-    
+
     private ProjectConfig? _currentProject;
     private MidiFileInfo? _midiFileInfo;
     private MidiAnalysisResult? _analysisResult;
@@ -136,7 +136,7 @@ public class MidiAnalysisViewModel : ViewModelBase
     private async void SelectMidiFile()
     {
         string? initialDirectory = null;
-        
+
         // 优先使用项目目录
         if (CurrentProject != null && !string.IsNullOrWhiteSpace(CurrentProject.ProjectPath))
         {
@@ -158,7 +158,7 @@ public class MidiAnalysisViewModel : ViewModelBase
                 title: "选择 MIDI 文件",
                 filters: "MIDI 文件|*.mid;*.midi|所有文件|*.*",
                 initialDirectory: initialDirectory);
-            
+
             if (!string.IsNullOrWhiteSpace(selectedPath))
             {
                 SelectedMidiFilePath = selectedPath;
@@ -178,7 +178,7 @@ public class MidiAnalysisViewModel : ViewModelBase
                         var midiFiles = Directory.GetFiles(midiDir, "*.mid", SearchOption.TopDirectoryOnly)
                             .Concat(Directory.GetFiles(midiDir, "*.midi", SearchOption.TopDirectoryOnly))
                             .FirstOrDefault();
-                        
+
                         if (!string.IsNullOrEmpty(midiFiles))
                         {
                             SelectedMidiFilePath = midiFiles;
@@ -212,7 +212,7 @@ public class MidiAnalysisViewModel : ViewModelBase
                         var midiFiles = Directory.GetFiles(midiDir, "*.mid", SearchOption.TopDirectoryOnly)
                             .Concat(Directory.GetFiles(midiDir, "*.midi", SearchOption.TopDirectoryOnly))
                             .FirstOrDefault();
-                        
+
                         if (!string.IsNullOrEmpty(midiFiles))
                         {
                             SelectedMidiFilePath = midiFiles;

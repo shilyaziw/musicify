@@ -42,6 +42,11 @@ public class WelcomeViewModel : ViewModelBase
         };
     }
 
+    public WelcomeViewModel()
+    {
+        throw new NotImplementedException();
+    }
+
     #region 属性
 
     /// <summary>
@@ -143,7 +148,16 @@ public class WelcomeViewModel : ViewModelBase
 
     private void OnCreateNewProject()
     {
-        _navigationService.NavigateTo("CreateProjectView", null);
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("OnCreateNewProject called!");
+            _navigationService.NavigateTo("CreateProjectView", null);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error in OnCreateNewProject: {ex.Message}");
+            ErrorMessage = $"创建项目失败: {ex.Message}";
+        }
     }
 
     private bool CanOpenProject(ProjectConfig? project)
@@ -153,26 +167,34 @@ public class WelcomeViewModel : ViewModelBase
 
     private async Task OnOpenProjectAsync(ProjectConfig? project)
     {
-        if (project == null || string.IsNullOrEmpty(project.ProjectPath)) return;
+        if (project == null || string.IsNullOrEmpty(project.ProjectPath))
+        {
+            return;
+        }
 
         try
         {
             IsLoading = true;
             ErrorMessage = string.Empty;
 
+            System.Diagnostics.Debug.WriteLine($"Opening project: {project.ProjectPath}");
+
             var loadedProject = await _projectService.LoadProjectAsync(project.ProjectPath);
             if (loadedProject != null)
             {
+                System.Diagnostics.Debug.WriteLine($"Project loaded successfully: {loadedProject.Name}");
                 _navigationService.NavigateTo("MainWindow", loadedProject);
             }
             else
             {
                 ErrorMessage = "无法加载项目配置";
+                System.Diagnostics.Debug.WriteLine("Failed to load project config");
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = $"打开项目失败: {ex.Message}";
+            System.Diagnostics.Debug.WriteLine($"Exception in OnOpenProjectAsync: {ex}");
         }
         finally
         {
@@ -182,12 +204,18 @@ public class WelcomeViewModel : ViewModelBase
 
     private async Task OnBrowseProjectAsync()
     {
-        if (OnBrowseProjectRequested == null) return;
+        if (OnBrowseProjectRequested == null)
+        {
+            return;
+        }
 
         try
         {
             var selectedPath = await OnBrowseProjectRequested();
-            if (string.IsNullOrEmpty(selectedPath)) return;
+            if (string.IsNullOrEmpty(selectedPath))
+            {
+                return;
+            }
 
             var project = await _projectService.LoadProjectAsync(selectedPath);
             _navigationService.NavigateTo("MainWindow", project);
@@ -257,7 +285,10 @@ public class AsyncRelayCommand : ICommand
 
     public async Task ExecuteAsync(object? parameter)
     {
-        if (!CanExecute(parameter)) return;
+        if (!CanExecute(parameter))
+        {
+            return;
+        }
 
         try
         {
@@ -295,9 +326,16 @@ public class AsyncRelayCommand<T> : ICommand
 
     public bool CanExecute(object? parameter)
     {
-        if (_isExecuting) return false;
+        if (_isExecuting)
+        {
+            return false;
+        }
+
         if (parameter is T typedParam)
+        {
             return _canExecute?.Invoke(typedParam) ?? true;
+        }
+
         return parameter == null && (_canExecute?.Invoke(default) ?? true);
     }
 
@@ -308,7 +346,10 @@ public class AsyncRelayCommand<T> : ICommand
 
     public async Task ExecuteAsync(object? parameter)
     {
-        if (!CanExecute(parameter)) return;
+        if (!CanExecute(parameter))
+        {
+            return;
+        }
 
         try
         {
